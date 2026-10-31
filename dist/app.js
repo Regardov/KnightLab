@@ -1,5 +1,5 @@
 const PIECES = {
-  K: "♔", Q: "♕", R: "♖", B: "♗", N: "♘", P: "♙",
+  K: "♚", Q: "♛", R: "♜", B: "♝", N: "♞", P: "♟",
   k: "♚", q: "♛", r: "♜", b: "♝", n: "♞", p: "♟"
 };
 
@@ -137,6 +137,7 @@ const state = {
   puzzleIndex: 0,
   board: {},
   selected: null,
+  dragFrom: null,
   lineIndex: 0,
   lastMove: [],
   hintSquare: null,
@@ -251,11 +252,43 @@ function renderBoard() {
         const span = document.createElement("span");
         span.textContent = PIECES[piece];
         span.className = piece === piece.toUpperCase() ? "piece-white" : "piece-black";
+        span.draggable = true;
+        span.addEventListener("dragstart", (event) => {
+          state.dragFrom = squareName;
+          state.selected = squareName;
+          state.hintSquare = null;
+          square.classList.add("selected");
+          event.dataTransfer.effectAllowed = "move";
+          event.dataTransfer.setData("text/plain", squareName);
+        });
+        span.addEventListener("dragend", () => {
+          if (state.dragFrom) {
+            state.dragFrom = null;
+            state.selected = null;
+            renderBoard();
+          }
+        });
         square.appendChild(span);
       }
       if (row === 7) square.insertAdjacentHTML("beforeend", `<span class="coord file">${file}</span>`);
       if (col === 0) square.insertAdjacentHTML("beforeend", `<span class="coord rank">${rank}</span>`);
       square.addEventListener("click", () => handleSquare(squareName));
+      square.addEventListener("dragover", (event) => {
+        if (!state.dragFrom || state.dragFrom === squareName) return;
+        event.preventDefault();
+        event.dataTransfer.dropEffect = "move";
+        square.classList.add("drop-target");
+      });
+      square.addEventListener("dragleave", () => square.classList.remove("drop-target"));
+      square.addEventListener("drop", (event) => {
+        event.preventDefault();
+        square.classList.remove("drop-target");
+        const from = state.dragFrom || event.dataTransfer.getData("text/plain");
+        state.dragFrom = null;
+        state.selected = null;
+        if (from && from !== squareName) tryMove(from, squareName);
+        else renderBoard();
+      });
       boardEl.appendChild(square);
     });
   });
@@ -413,12 +446,21 @@ function nextPuzzle() {
 
 function renderThemeFilters() {
   const select = $("#categoryFilter");
-  THEMES.filter((theme) => PUZZLES.some((p) => p.theme === theme.id)).forEach((theme) => {
+  const playableThemes = THEMES.filter((theme) => PUZZLES.some((p) => p.theme === theme.id));
+  playableThemes.forEach((theme) => {
     const option = document.createElement("option");
     option.value = theme.id;
     option.textContent = theme.name;
     select.appendChild(option);
   });
+  $("#quickThemes").innerHTML = [
+    '<button type="button" class="quick-theme active" data-theme="all">Все</button>',
+    ...playableThemes.map((theme) => `<button type="button" class="quick-theme" data-theme="${theme.id}">${theme.name}</button>`)
+  ].join("");
+  $("#quickThemes").querySelectorAll("button").forEach((button) => button.addEventListener("click", () => {
+    $("#categoryFilter").value = button.dataset.theme;
+    applyFilters();
+  }));
 }
 
 function renderThemeTabs() {
@@ -452,6 +494,8 @@ function chooseTheme(themeId) {
   }
   state.filters.theme = themeId;
   $("#categoryFilter").value = themeId;
+  updateFilterUi();
+  setFilterDrawer(false);
   loadPuzzle(PUZZLES.findIndex((p) => p.id === available.id), true);
 }
 
@@ -459,11 +503,32 @@ function applyFilters() {
   state.filters.theme = $("#categoryFilter").value;
   state.filters.difficulty = $("#difficultyFilter").value;
   const list = filteredPuzzles();
+  updateFilterUi();
   if (!list.length) {
     showToast("Нет задач с таким сочетанием фильтров");
     return;
   }
   loadPuzzle(PUZZLES.findIndex((p) => p.id === list[0].id));
+}
+
+function updateFilterUi() {
+  const list = filteredPuzzles();
+  const theme = THEMES.find((item) => item.id === state.filters.theme);
+  const summaryParts = [theme?.name || "Все темы"];
+  if (state.filters.difficulty !== "all") summaryParts.push(state.filters.difficulty);
+  $("#filterSummary").textContent = summaryParts.join(" · ");
+  $("#filterResultCount").textContent = `${list.length} ${plural(list.length, "задача доступна", "задачи доступны", "задач доступно")}`;
+  $("#quickThemes").querySelectorAll("button").forEach((button) => button.classList.toggle("active", button.dataset.theme === state.filters.theme));
+  $("#difficultyOptions").querySelectorAll("button").forEach((button) => button.classList.toggle("active", button.dataset.difficulty === state.filters.difficulty));
+}
+
+function setFilterDrawer(open) {
+  $("#filterDrawer").classList.toggle("open", open);
+  $("#filterDrawer").setAttribute("aria-hidden", String(!open));
+  $("#filterToggle").setAttribute("aria-expanded", String(open));
+  $("#drawerOverlay").hidden = !open;
+  document.body.style.overflow = open ? "hidden" : "";
+  if (open) $("#filterClose").focus();
 }
 
 function updateStats() {
@@ -518,6 +583,7 @@ function init() {
   renderThemeFilters();
   renderThemeTabs();
   renderThemes();
+  updateFilterUi();
   loadPuzzle(0);
   updateStats();
 
@@ -526,6 +592,22 @@ function init() {
   $("#nextButton").addEventListener("click", nextPuzzle);
   $("#categoryFilter").addEventListener("change", applyFilters);
   $("#difficultyFilter").addEventListener("change", applyFilters);
+  $("#filterToggle").addEventListener("click", () => setFilterDrawer(true));
+  $("#filterSummaryButton").addEventListener("click", () => setFilterDrawer(true));
+  $("#filterClose").addEventListener("click", () => setFilterDrawer(false));
+  $("#drawerOverlay").addEventListener("click", () => setFilterDrawer(false));
+  $("#difficultyOptions").querySelectorAll("button").forEach((button) => button.addEventListener("click", () => {
+    $("#difficultyFilter").value = button.dataset.difficulty;
+    applyFilters();
+  }));
+  $("#resetFilters").addEventListener("click", () => {
+    $("#categoryFilter").value = "all";
+    $("#difficultyFilter").value = "all";
+    applyFilters();
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") setFilterDrawer(false);
+  });
   $("#soundButton").addEventListener("click", () => {
     state.sound = !state.sound;
     $("#soundIcon").textContent = state.sound ? "◉" : "○";

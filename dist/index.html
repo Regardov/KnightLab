@@ -6,9 +6,6 @@
   <meta name="theme-color" content="#0b1020">
   <meta name="description" content="KnightLab — красивый интерактивный тренажёр шахматной тактики: маты, комбинации, защита и эндшпили.">
   <title>KnightLab — шахматный тренажёр</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=Unbounded:wght@600;700&amp;display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -16,6 +13,9 @@
   <div class="ambient ambient-two" aria-hidden="true"></div>
 
   <header class="topbar">
+    <button class="menu-button" id="filterToggle" type="button" aria-label="Открыть фильтры задач" aria-controls="filterDrawer" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
     <a class="brand" href="#top" aria-label="KnightLab — на главную">
       <span class="brand-mark" aria-hidden="true">♞</span>
       <span>Knight<span>Lab</span></span>
@@ -29,6 +29,46 @@
       <span id="soundIcon">◉</span>
     </button>
   </header>
+
+  <div class="drawer-overlay" id="drawerOverlay" hidden></div>
+  <aside class="filter-drawer" id="filterDrawer" aria-hidden="true" aria-label="Фильтры задач">
+    <div class="drawer-header">
+      <div>
+        <span class="drawer-kicker">ТРЕНИРОВКА</span>
+        <h2>Фильтры задач</h2>
+      </div>
+      <button class="drawer-close" id="filterClose" type="button" aria-label="Закрыть фильтры">×</button>
+    </div>
+    <p class="drawer-copy">Выберите тему и сложность. Доска сразу откроет подходящую задачу.</p>
+    <div class="drawer-section">
+      <label for="categoryFilter">Тема</label>
+      <div class="select-wrap drawer-select">
+        <select id="categoryFilter">
+          <option value="all">Все темы</option>
+        </select>
+      </div>
+      <div class="quick-themes" id="quickThemes" aria-label="Быстрый выбор темы"></div>
+    </div>
+    <div class="drawer-section">
+      <label for="difficultyFilter">Сложность</label>
+      <div class="difficulty-options" id="difficultyOptions">
+        <button type="button" class="difficulty-option active" data-difficulty="all">Любая</button>
+        <button type="button" class="difficulty-option" data-difficulty="Легко">Легко</button>
+        <button type="button" class="difficulty-option" data-difficulty="Средне">Средне</button>
+        <button type="button" class="difficulty-option" data-difficulty="Сложно">Сложно</button>
+      </div>
+      <select id="difficultyFilter" class="sr-only" aria-label="Сложность">
+        <option value="all">Любая сложность</option>
+        <option value="Легко">Легко</option>
+        <option value="Средне">Средне</option>
+        <option value="Сложно">Сложно</option>
+      </select>
+    </div>
+    <div class="drawer-footer">
+      <span id="filterResultCount">16 задач доступно</span>
+      <button class="drawer-reset" id="resetFilters" type="button">Сбросить</button>
+    </div>
+  </aside>
 
   <main id="top">
     <section class="hero" aria-labelledby="hero-title">
@@ -58,23 +98,10 @@
           <div class="eyebrow"><span></span> Интерактивная тренировка</div>
           <h2 id="trainer-title">Твой следующий ход</h2>
         </div>
-        <div class="filter-row" aria-label="Фильтры задач">
-          <label class="select-wrap">
-            <span class="sr-only">Тема</span>
-            <select id="categoryFilter">
-              <option value="all">Все темы</option>
-            </select>
-          </label>
-          <label class="select-wrap">
-            <span class="sr-only">Сложность</span>
-            <select id="difficultyFilter">
-              <option value="all">Любая сложность</option>
-              <option value="Легко">Легко</option>
-              <option value="Средне">Средне</option>
-              <option value="Сложно">Сложно</option>
-            </select>
-          </label>
-        </div>
+        <button class="filter-summary-button" id="filterSummaryButton" type="button">
+          <span class="mini-bars"><i></i><i></i><i></i></span>
+          <span id="filterSummary">Все задачи</span>
+        </button>
       </div>
 
       <div class="trainer-grid">

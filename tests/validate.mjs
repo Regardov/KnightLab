@@ -16,10 +16,14 @@ assert.match(manifest.project_id, /^appgprj_/);
 assert.match(html, /<html lang="ru">/);
 assert.match(html, /id="chessboard"/);
 assert.match(css, /@media \(max-width: 560px\)/);
+assert.doesNotMatch(html, /fonts\.googleapis\.com/);
+assert.match(css, /font-family: Arial, sans-serif/);
+assert.match(js, /span\.draggable = true/);
 
 for (const id of [
   "trainer", "themes", "progress", "categoryFilter", "difficultyFilter",
-  "chessboard", "hintButton", "resetButton", "nextButton", "themeGrid"
+  "chessboard", "hintButton", "resetButton", "nextButton", "themeGrid",
+  "filterToggle", "filterDrawer", "filterClose", "quickThemes", "difficultyOptions"
 ]) {
   assert.ok(html.includes(`id="${id}"`), `Missing UI element #${id}`);
 }
