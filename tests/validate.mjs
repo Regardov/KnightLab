@@ -16,6 +16,7 @@ assert.match(manifest.project_id, /^appgprj_/);
 assert.match(html, /<html lang="ru">/);
 assert.match(html, /id="chessboard"/);
 assert.match(css, /@media \(max-width: 560px\)/);
+assert.match(css, /grid-template-rows: repeat\(8, minmax\(0, 1fr\)\)/);
 assert.doesNotMatch(html, /fonts\.googleapis\.com/);
 assert.match(css, /font-family: Arial, sans-serif/);
 assert.match(js, /span\.draggable = true/);
