@@ -1,10 +1,10 @@
 const PIECE_SVGS = {
-  k: `<svg class="piece-svg" viewBox="0 0 100 100" aria-hidden="true"><path fill="currentColor" d="M46 8h8v11h11v8H54v11c13 2 22 13 22 27H24c0-14 9-25 22-27V27H35v-8h11V8Z"/><path fill="currentColor" d="M25 69h50l-4 10H29l-4-10Zm1 14h48v9H26v-9Z"/></svg>`,
-  q: `<svg class="piece-svg" viewBox="0 0 100 100" aria-hidden="true"><path fill="currentColor" d="m19 28 14 22 9-25 8 25 8-25 9 25 14-22-9 39H28l-9-39Z"/><circle cx="18" cy="25" r="6" fill="currentColor"/><circle cx="42" cy="21" r="6" fill="currentColor"/><circle cx="58" cy="21" r="6" fill="currentColor"/><circle cx="82" cy="25" r="6" fill="currentColor"/><path fill="currentColor" d="M27 71h46l-4 9H31l-4-9Zm-1 13h48v8H26v-8Z"/></svg>`,
-  r: `<svg class="piece-svg" viewBox="0 0 100 100" aria-hidden="true"><path fill="currentColor" d="M23 15h14v12h12V15h14v12h13V15h8v27H16V15h7Zm2 32h50l-5 27H30l-5-27Zm2 31h46l4 14H23l4-14Z"/></svg>`,
-  b: `<svg class="piece-svg" viewBox="0 0 100 100" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M50 10c15 12 23 24 23 36 0 11-7 19-18 23l4 8h14l4 15H23l4-15h14l4-8c-11-4-18-12-18-23 0-12 8-24 23-36Zm6 20-18 23 7 5 18-23-7-5Z"/></svg>`,
-  n: `<svg class="piece-svg" viewBox="0 0 100 100" aria-hidden="true"><path fill="currentColor" d="M27 77c2-15 8-26 20-35l-11-3 8-10 8 5c4-10 11-17 22-21l-2 15c8 10 11 22 8 35l-17-8-7 10h14l6 27H22l5-15Zm27-32c0 3 2 5 5 5s5-2 5-5-2-5-5-5-5 2-5 5Z"/></svg>`,
-  p: `<svg class="piece-svg" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="26" r="16" fill="currentColor"/><path fill="currentColor" d="M37 42h26l8 28H29l8-28Zm-8 32h42l5 18H24l5-18Z"/></svg>`
+  k: `<svg class="piece-svg" viewBox="0 0 100 100" aria-hidden="true"><path class="piece-line" d="M50 7v22M40 17h20"/><path class="piece-body" d="M50 27c-7-10-19-7-19 3 0 6 4 10 9 13-10 4-16 13-16 24h52c0-11-6-20-16-24 5-3 9-7 9-13 0-10-12-13-19-3Z"/><path class="piece-body" d="M29 68h42l-5 11H34l-5-11Zm-4 15h50v10H25V83Z"/><path class="piece-detail" d="M35 75h30M31 88h38"/></svg>`,
+  q: `<svg class="piece-svg" viewBox="0 0 100 100" aria-hidden="true"><circle class="piece-body" cx="17" cy="24" r="5"/><circle class="piece-body" cx="38" cy="17" r="5"/><circle class="piece-body" cx="62" cy="17" r="5"/><circle class="piece-body" cx="83" cy="24" r="5"/><path class="piece-body" d="m18 29 15 27 8-30 9 28 9-28 8 30 15-27-10 39H28L18 29Z"/><path class="piece-body" d="M28 68h44l-5 11H33l-5-11Zm-3 15h50v10H25V83Z"/><path class="piece-detail" d="M34 73h32M31 88h38"/></svg>`,
+  r: `<svg class="piece-svg" viewBox="0 0 100 100" aria-hidden="true"><path class="piece-body" d="M21 14h16v11h12V14h14v11h16V14h8v29H13V14h8Zm4 29h50l-5 34H30l-5-34Zm2 34h46l5 15H22l5-15Z"/><path class="piece-detail" d="M22 35h56M31 70h38M28 84h44"/></svg>`,
+  b: `<svg class="piece-svg" viewBox="0 0 100 100" aria-hidden="true"><path class="piece-body" d="M50 9c13 11 21 22 21 34 0 12-8 21-18 26l6 9h14l5 14H22l5-14h14l6-9c-10-5-18-14-18-26 0-12 8-23 21-34Z"/><path class="piece-detail" d="m57 27-17 23M34 58c10 5 22 5 32 0M31 84h38"/></svg>`,
+  n: `<svg class="piece-svg" viewBox="0 0 100 100" aria-hidden="true"><path class="piece-body" d="M23 77c3-16 11-29 25-39l-12-5 10-10 9 7c5-9 13-15 24-18l-4 17c8 10 11 23 7 37L65 55 54 67h16l7 25H21l2-15Z"/><path class="piece-detail" d="M52 34c8 1 14 5 19 11M29 82h40"/><circle class="piece-eye" cx="62" cy="34" r="3.5"/></svg>`,
+  p: `<svg class="piece-svg" viewBox="0 0 100 100" aria-hidden="true"><circle class="piece-body" cx="50" cy="25" r="15"/><path class="piece-body" d="M39 39h22c0 13 6 22 12 30H27c6-8 12-17 12-30Zm-10 30h42l6 23H23l6-23Z"/><path class="piece-detail" d="M31 76h38M29 86h42"/></svg>`
 };
 
 const GROUPS = ["Все", "Маты", "Материал", "Атака", "Защита", "Эндшпиль"];
@@ -223,6 +223,10 @@ function loadPuzzle(index, scroll = false) {
   $("#difficultyBadge").textContent = puzzle.difficulty;
   $("#puzzleTitle").textContent = puzzle.title;
   $("#puzzlePrompt").textContent = puzzle.prompt;
+  $("#taskSide").textContent = `Ход ${puzzle.orientation === "white" ? "белых" : "чёрных"}`;
+  $("#taskGoal").textContent = puzzle.prompt;
+  $("#fullscreenTaskSide").textContent = `Ход ${puzzle.orientation === "white" ? "белых" : "чёрных"}`;
+  $("#fullscreenTaskGoal").textContent = puzzle.prompt;
   $("#puzzleSource").href = puzzle.source?.url || "https://lichess.org/training";
   $("#puzzleSource").textContent = puzzle.source?.id ? `Источник: Lichess #${puzzle.source.id}` : "Проверено Stockfish 19";
   $("#puzzleRating").textContent = puzzle.rating;

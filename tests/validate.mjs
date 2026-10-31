@@ -24,6 +24,8 @@ assert.match(js, /requestFullscreen/);
 assert.doesNotMatch(html, /fonts\.googleapis\.com/);
 assert.match(css, /font-family: Arial, sans-serif/);
 assert.match(js, /span\.draggable = true/);
+assert.match(js, /piece-body/);
+assert.match(css, /\.task-banner/);
 assert.match(html, /engine-client\.js/);
 assert.ok(fs.statSync(path.join(root, "dist", "engine", "stockfish-19-lite-single.wasm")).size > 1_000_000);
 
@@ -31,7 +33,8 @@ for (const id of [
   "trainer", "themes", "progress", "categoryFilter", "difficultyFilter",
   "chessboard", "hintButton", "resetButton", "nextButton", "themeGrid",
   "filterToggle", "filterDrawer", "filterClose", "quickThemes", "difficultyOptions",
-  "fullscreenButton", "fullscreenLabel"
+  "fullscreenButton", "fullscreenLabel", "taskBanner", "taskSide", "taskGoal",
+  "fullscreenTaskSide", "fullscreenTaskGoal"
 ]) {
   assert.ok(html.includes(`id="${id}"`), `Missing UI element #${id}`);
 }

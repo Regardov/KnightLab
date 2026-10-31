@@ -104,6 +104,14 @@
         </button>
       </div>
 
+      <div class="task-banner" id="taskBanner" aria-live="polite">
+        <div class="task-side"><span class="task-dot"></span><span id="taskSide">Ход белых</span></div>
+        <div class="task-copy">
+          <span>Ваша задача</span>
+          <strong id="taskGoal">Найдите лучший ход</strong>
+        </div>
+      </div>
+
       <div class="trainer-grid">
         <aside class="puzzle-panel" aria-live="polite">
           <div class="puzzle-kicker">
@@ -145,6 +153,10 @@
         </aside>
 
         <div class="board-column">
+          <div class="board-taskline">
+            <span id="fullscreenTaskSide">Ход белых</span>
+            <strong id="fullscreenTaskGoal">Найдите лучший ход</strong>
+          </div>
           <div class="board-topline">
             <div class="player-chip">
               <div class="player-avatar rival">♜</div>
