@@ -17,6 +17,9 @@ assert.match(html, /<html lang="ru">/);
 assert.match(html, /id="chessboard"/);
 assert.match(css, /@media \(max-width: 560px\)/);
 assert.match(css, /grid-template-rows: repeat\(8, minmax\(0, 1fr\)\)/);
+assert.match(css, /\.board-column:fullscreen/);
+assert.match(js, /const PIECE_SVGS/);
+assert.match(js, /requestFullscreen/);
 assert.doesNotMatch(html, /fonts\.googleapis\.com/);
 assert.match(css, /font-family: Arial, sans-serif/);
 assert.match(js, /span\.draggable = true/);
@@ -24,7 +27,8 @@ assert.match(js, /span\.draggable = true/);
 for (const id of [
   "trainer", "themes", "progress", "categoryFilter", "difficultyFilter",
   "chessboard", "hintButton", "resetButton", "nextButton", "themeGrid",
-  "filterToggle", "filterDrawer", "filterClose", "quickThemes", "difficultyOptions"
+  "filterToggle", "filterDrawer", "filterClose", "quickThemes", "difficultyOptions",
+  "fullscreenButton", "fullscreenLabel"
 ]) {
   assert.ok(html.includes(`id="${id}"`), `Missing UI element #${id}`);
 }

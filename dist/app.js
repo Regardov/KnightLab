@@ -1,6 +1,10 @@
-const PIECES = {
-  K: "♚", Q: "♛", R: "♜", B: "♝", N: "♞", P: "♟",
-  k: "♚", q: "♛", r: "♜", b: "♝", n: "♞", p: "♟"
+const PIECE_SVGS = {
+  k: `<svg class="piece-svg" viewBox="0 0 100 100" aria-hidden="true"><path fill="currentColor" d="M46 8h8v11h11v8H54v11c13 2 22 13 22 27H24c0-14 9-25 22-27V27H35v-8h11V8Z"/><path fill="currentColor" d="M25 69h50l-4 10H29l-4-10Zm1 14h48v9H26v-9Z"/></svg>`,
+  q: `<svg class="piece-svg" viewBox="0 0 100 100" aria-hidden="true"><path fill="currentColor" d="m19 28 14 22 9-25 8 25 8-25 9 25 14-22-9 39H28l-9-39Z"/><circle cx="18" cy="25" r="6" fill="currentColor"/><circle cx="42" cy="21" r="6" fill="currentColor"/><circle cx="58" cy="21" r="6" fill="currentColor"/><circle cx="82" cy="25" r="6" fill="currentColor"/><path fill="currentColor" d="M27 71h46l-4 9H31l-4-9Zm-1 13h48v8H26v-8Z"/></svg>`,
+  r: `<svg class="piece-svg" viewBox="0 0 100 100" aria-hidden="true"><path fill="currentColor" d="M23 15h14v12h12V15h14v12h13V15h8v27H16V15h7Zm2 32h50l-5 27H30l-5-27Zm2 31h46l4 14H23l4-14Z"/></svg>`,
+  b: `<svg class="piece-svg" viewBox="0 0 100 100" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M50 10c15 12 23 24 23 36 0 11-7 19-18 23l4 8h14l4 15H23l4-15h14l4-8c-11-4-18-12-18-23 0-12 8-24 23-36Zm6 20-18 23 7 5 18-23-7-5Z"/></svg>`,
+  n: `<svg class="piece-svg" viewBox="0 0 100 100" aria-hidden="true"><path fill="currentColor" d="M27 77c2-15 8-26 20-35l-11-3 8-10 8 5c4-10 11-17 22-21l-2 15c8 10 11 22 8 35l-17-8-7 10h14l6 27H22l5-15Zm27-32c0 3 2 5 5 5s5-2 5-5-2-5-5-5-5 2-5 5Z"/></svg>`,
+  p: `<svg class="piece-svg" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="26" r="16" fill="currentColor"/><path fill="currentColor" d="M37 42h26l8 28H29l8-28Zm-8 32h42l5 18H24l5-18Z"/></svg>`
 };
 
 const GROUPS = ["Все", "Маты", "Материал", "Атака", "Защита", "Эндшпиль"];
@@ -250,7 +254,7 @@ function renderBoard() {
       if (state.hintSquare === squareName) square.classList.add("hint-square");
       if (piece) {
         const span = document.createElement("span");
-        span.textContent = PIECES[piece];
+        span.innerHTML = PIECE_SVGS[piece.toLowerCase()];
         span.className = piece === piece.toUpperCase() ? "piece-white" : "piece-black";
         span.draggable = true;
         span.addEventListener("dragstart", (event) => {
@@ -531,6 +535,23 @@ function setFilterDrawer(open) {
   if (open) $("#filterClose").focus();
 }
 
+async function toggleBoardFullscreen() {
+  const boardColumn = $(".board-column");
+  try {
+    if (!document.fullscreenElement) await boardColumn.requestFullscreen();
+    else await document.exitFullscreen();
+  } catch (_) {
+    showToast("Браузер не разрешил полноэкранный режим");
+  }
+}
+
+function updateFullscreenButton() {
+  const active = Boolean(document.fullscreenElement);
+  $("#fullscreenLabel").textContent = active ? "Выйти" : "На весь экран";
+  $("#fullscreenButton").setAttribute("aria-label", active ? "Выйти из полноэкранного режима" : "Открыть доску на весь экран");
+  $("#fullscreenButton").classList.toggle("active", active);
+}
+
 function updateStats() {
   normalizeProgress();
   const today = state.progress.todaySolved;
@@ -608,6 +629,8 @@ function init() {
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape") setFilterDrawer(false);
   });
+  $("#fullscreenButton").addEventListener("click", toggleBoardFullscreen);
+  document.addEventListener("fullscreenchange", updateFullscreenButton);
   $("#soundButton").addEventListener("click", () => {
     state.sound = !state.sound;
     $("#soundIcon").textContent = state.sound ? "◉" : "○";
