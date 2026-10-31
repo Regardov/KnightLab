@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b1020">
+  <meta name="description" content="KnightLab — красивый интерактивный тренажёр шахматной тактики: маты, комбинации, защита и эндшпили.">
+  <title>KnightLab — шахматный тренажёр</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=Unbounded:wght@600;700&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="ambient ambient-one" aria-hidden="true"></div>
+  <div class="ambient ambient-two" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <a class="brand" href="#top" aria-label="KnightLab — на главную">
+      <span class="brand-mark" aria-hidden="true">♞</span>
+      <span>Knight<span>Lab</span></span>
+    </a>
+    <nav class="main-nav" aria-label="Основная навигация">
+      <a class="active" href="#trainer">Тренировка</a>
+      <a href="#themes">Темы</a>
+      <a href="#progress">Прогресс</a>
+    </nav>
+    <button class="icon-button" id="soundButton" type="button" aria-label="Выключить звук" title="Звук">
+      <span id="soundIcon">◉</span>
+    </button>
+  </header>
+
+  <main id="top">
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <div class="eyebrow"><span></span> Шахматное мышление — каждый день</div>
+        <h1 id="hero-title">Видеть комбинацию<br><em>раньше соперника.</em></h1>
+        <p>Тренируй тактическое зрение на коротких, понятных задачах. От мата в один ход до сложных жертв и эндшпилей.</p>
+        <div class="hero-actions">
+          <a class="primary-button" href="#trainer">Начать тренировку <span>→</span></a>
+          <a class="text-link" href="#themes">Выбрать тему</a>
+        </div>
+      </div>
+      <div class="hero-orbit" aria-hidden="true">
+        <div class="orbit-ring ring-one"></div>
+        <div class="orbit-ring ring-two"></div>
+        <div class="hero-knight">♞</div>
+        <span class="orbit-dot dot-one"></span>
+        <span class="orbit-dot dot-two"></span>
+        <span class="orbit-label label-one">ТАКТИКА</span>
+        <span class="orbit-label label-two">ФОКУС</span>
+      </div>
+    </section>
+
+    <section class="dashboard" id="trainer" aria-labelledby="trainer-title">
+      <div class="section-heading dashboard-heading">
+        <div>
+          <div class="eyebrow"><span></span> Интерактивная тренировка</div>
+          <h2 id="trainer-title">Твой следующий ход</h2>
+        </div>
+        <div class="filter-row" aria-label="Фильтры задач">
+          <label class="select-wrap">
+            <span class="sr-only">Тема</span>
+            <select id="categoryFilter">
+              <option value="all">Все темы</option>
+            </select>
+          </label>
+          <label class="select-wrap">
+            <span class="sr-only">Сложность</span>
+            <select id="difficultyFilter">
+              <option value="all">Любая сложность</option>
+              <option value="Легко">Легко</option>
+              <option value="Средне">Средне</option>
+              <option value="Сложно">Сложно</option>
+            </select>
+          </label>
+        </div>
+      </div>
+
+      <div class="trainer-grid">
+        <aside class="puzzle-panel" aria-live="polite">
+          <div class="puzzle-kicker">
+            <span id="puzzleNumber">Задача 1</span>
+            <span class="difficulty-badge" id="difficultyBadge">Легко</span>
+          </div>
+          <h3 id="puzzleTitle">Мат в один ход</h3>
+          <p id="puzzlePrompt">Ход белых. Найдите решающий ход.</p>
+
+          <div class="rating-line">
+            <span class="mini-label">УРОВЕНЬ</span>
+            <strong id="puzzleRating">800</strong>
+            <div class="rating-track"><span id="ratingFill"></span></div>
+          </div>
+
+          <div class="status-card" id="statusCard">
+            <span class="status-icon" id="statusIcon">✦</span>
+            <div>
+              <strong id="statusTitle">Ваш ход</strong>
+              <p id="statusText">Нажмите на фигуру, затем на поле назначения.</p>
+            </div>
+          </div>
+
+          <div class="puzzle-actions">
+            <button class="secondary-button" id="hintButton" type="button">Подсказка</button>
+            <button class="secondary-button" id="resetButton" type="button">Сначала</button>
+          </div>
+
+          <div class="hint-box" id="hintBox" hidden>
+            <span>Подсказка</span>
+            <p id="hintText"></p>
+          </div>
+
+          <div class="solution-note" id="solutionNote" hidden>
+            <span>Идея комбинации</span>
+            <p id="lessonText"></p>
+          </div>
+        </aside>
+
+        <div class="board-column">
+          <div class="board-topline">
+            <div class="player-chip">
+              <div class="player-avatar rival">♜</div>
+              <div><strong>Соперник</strong><span id="opponentSide">Чёрные</span></div>
+            </div>
+            <span class="turn-pill" id="turnPill"><i></i> Ваш ход</span>
+          </div>
+
+          <div class="board-shell">
+            <div class="chessboard" id="chessboard" role="grid" aria-label="Шахматная доска"></div>
+          </div>
+
+          <div class="board-bottomline">
+            <div class="player-chip">
+              <div class="player-avatar you">♞</div>
+              <div><strong>Вы</strong><span id="playerSide">Белые</span></div>
+            </div>
+            <button class="next-button" id="nextButton" type="button">Следующая <span>→</span></button>
+          </div>
+        </div>
+
+        <aside class="stats-panel" id="progress">
+          <div class="stat-header">
+            <span>Сегодня</span>
+            <strong id="todayDate"></strong>
+          </div>
+          <div class="daily-ring" id="dailyRing">
+            <div><strong id="dailySolved">0</strong><span>/ 5</span><small>решено</small></div>
+          </div>
+          <p class="daily-copy" id="dailyCopy">Решите первую задачу и запустите серию.</p>
+
+          <div class="stat-list">
+            <div><span class="stat-symbol flame">♨</span><p>Серия<strong id="streakValue">0 дней</strong></p></div>
+            <div><span class="stat-symbol accuracy">◎</span><p>Точность<strong id="accuracyValue">—</strong></p></div>
+            <div><span class="stat-symbol solved">✓</span><p>Всего решено<strong id="totalSolved">0</strong></p></div>
+          </div>
+
+          <button class="ghost-button" id="clearProgress" type="button">Сбросить прогресс</button>
+        </aside>
+      </div>
+    </section>
+
+    <section class="themes-section" id="themes" aria-labelledby="themes-title">
+      <div class="section-heading">
+        <div>
+          <div class="eyebrow"><span></span> Библиотека</div>
+          <h2 id="themes-title">Все темы тактики</h2>
+        </div>
+        <p>Выберите навык, который хотите прокачать сегодня.</p>
+      </div>
+      <div class="theme-tabs" id="themeTabs" role="tablist" aria-label="Группы тем"></div>
+      <div class="theme-grid" id="themeGrid"></div>
+    </section>
+
+    <section class="method-section" aria-labelledby="method-title">
+      <div>
+        <div class="eyebrow"><span></span> Метод KnightLab</div>
+        <h2 id="method-title">Не угадывать.<br>Понимать.</h2>
+      </div>
+      <div class="method-steps">
+        <article><span>01</span><div><h3>Заметь угрозы</h3><p>Сначала проверь шахи, взятия и прямые атаки на обе стороны.</p></div></article>
+        <article><span>02</span><div><h3>Посчитай варианты</h3><p>Сравни ответы соперника и найди форсированное продолжение.</p></div></article>
+        <article><span>03</span><div><h3>Закрепи идею</h3><p>После решения прочитай короткое объяснение тактического мотива.</p></div></article>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <a class="brand footer-brand" href="#top"><span class="brand-mark">♞</span><span>Knight<span>Lab</span></span></a>
+    <p>Тренируй расчёт. Доверяй позиции.</p>
+    <span>© 2026 KnightLab</span>
+  </footer>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="app.js"></script>
+</body>
+</html>
