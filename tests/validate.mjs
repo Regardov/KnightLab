@@ -9,6 +9,7 @@ const root = path.resolve(testDir, "..");
 const html = fs.readFileSync(path.join(root, "dist", "index.html"), "utf8");
 const css = fs.readFileSync(path.join(root, "dist", "styles.css"), "utf8");
 const js = fs.readFileSync(path.join(root, "dist", "app.js"), "utf8");
+const puzzleData = fs.readFileSync(path.join(root, "dist", "puzzle-data.js"), "utf8");
 const manifest = JSON.parse(fs.readFileSync(path.join(root, ".openai", "hosting.json"), "utf8"));
 
 assert.equal(manifest.static.directory, "dist");
@@ -23,6 +24,8 @@ assert.match(js, /requestFullscreen/);
 assert.doesNotMatch(html, /fonts\.googleapis\.com/);
 assert.match(css, /font-family: Arial, sans-serif/);
 assert.match(js, /span\.draggable = true/);
+assert.match(html, /engine-client\.js/);
+assert.ok(fs.statSync(path.join(root, "dist", "engine", "stockfish-19-lite-single.wasm")).size > 1_000_000);
 
 for (const id of [
   "trainer", "themes", "progress", "categoryFilter", "difficultyFilter",
@@ -36,11 +39,11 @@ for (const id of [
 const dataOnly = js.slice(0, js.indexOf("const $ ="));
 const sandbox = {};
 vm.createContext(sandbox);
-vm.runInContext(`${dataOnly}\nglobalThis.__data = { THEMES, PUZZLES, GROUPS };`, sandbox);
+vm.runInContext(`${puzzleData}\n${dataOnly}\nglobalThis.__data = { THEMES, PUZZLES, GROUPS };`, sandbox);
 const { THEMES, PUZZLES, GROUPS } = sandbox.__data;
 
 assert.ok(THEMES.length >= 24, "The theme library must be comprehensive");
-assert.ok(PUZZLES.length >= 16, "The playable set must contain enough variety");
+assert.equal(PUZZLES.length, 75, "Every theme must provide three verified puzzles");
 assert.deepEqual([...GROUPS], ["Все", "Маты", "Материал", "Атака", "Защита", "Эндшпиль"]);
 assert.equal(new Set(THEMES.map((theme) => theme.id)).size, THEMES.length, "Theme ids must be unique");
 assert.equal(new Set(PUZZLES.map((puzzle) => puzzle.id)).size, PUZZLES.length, "Puzzle ids must be unique");
@@ -84,6 +87,12 @@ for (const puzzle of PUZZLES) {
     if (move[4]) piece = piece === piece.toUpperCase() ? move[4].toUpperCase() : move[4];
     board[to] = piece;
   }
+}
+
+for (const theme of THEMES) {
+  const themed = PUZZLES.filter((puzzle) => puzzle.theme === theme.id);
+  assert.equal(themed.length, 3, `${theme.id} must have exactly three puzzles`);
+  assert.deepEqual([...new Set(themed.map((puzzle) => puzzle.difficulty))].sort(), ["Легко", "Сложно", "Средне"].sort());
 }
 
 console.log(`KnightLab validation passed: ${THEMES.length} themes, ${PUZZLES.length} playable puzzles.`);

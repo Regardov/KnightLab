@@ -1,0 +1,14 @@
+{
+  "name": "knightlab-puzzle-audit",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "audit": "node audit.mjs"
+  },
+  "dependencies": {
+    "chess.js": "^1.4.0"
+  },
+  "devDependencies": {
+    "stockfish": "19.0.1"
+  }
+}

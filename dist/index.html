@@ -112,6 +112,7 @@
           </div>
           <h3 id="puzzleTitle">Мат в один ход</h3>
           <p id="puzzlePrompt">Ход белых. Найдите решающий ход.</p>
+          <a class="puzzle-source" id="puzzleSource" href="https://lichess.org/training" target="_blank" rel="noopener noreferrer">Источник: Lichess</a>
 
           <div class="rating-line">
             <span class="mini-label">УРОВЕНЬ</span>
@@ -150,6 +151,9 @@
               <div><strong>Соперник</strong><span id="opponentSide">Чёрные</span></div>
             </div>
             <div class="board-controls">
+              <span class="engine-badge checking" id="engineBadge" title="Локальный анализ позиции">
+                <i></i><span id="engineLabel">Stockfish загружается</span>
+              </span>
               <button class="fullscreen-button" id="fullscreenButton" type="button" aria-label="Открыть доску на весь экран" title="Полный экран">
                 <span class="fullscreen-icon" aria-hidden="true"></span>
                 <span id="fullscreenLabel">На весь экран</span>
@@ -224,6 +228,8 @@
   </footer>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="puzzle-data.js"></script>
+  <script src="engine-client.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

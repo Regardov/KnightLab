@@ -160,6 +160,13 @@ h1 em { color: transparent; -webkit-text-stroke: 1px rgba(246,243,234,.72); font
 .board-topline, .board-bottomline { display: flex; align-items: center; justify-content: space-between; margin: 0 0 13px; }
 .board-bottomline { margin: 13px 0 0; }
 .board-controls { display: flex; align-items: center; gap: 8px; }
+.engine-badge { display: inline-flex; align-items: center; gap: 6px; min-height: 31px; padding: 0 10px; border: 1px solid var(--line); border-radius: 999px; color: var(--muted); background: rgba(255,255,255,.025); font-size: 9px; font-weight: 800; letter-spacing: .04em; white-space: nowrap; }
+.engine-badge i { width: 6px; height: 6px; border-radius: 50%; background: #ffcf5a; box-shadow: 0 0 9px rgba(255,207,90,.55); }
+.engine-badge.ready { color: var(--ink); border-color: rgba(203,243,77,.32); background: rgba(203,243,77,.06); }
+.engine-badge.ready i { background: var(--acid); box-shadow: 0 0 10px rgba(203,243,77,.7); }
+.engine-badge.error i { background: #ff8d75; box-shadow: 0 0 9px rgba(255,141,117,.55); }
+.puzzle-source { display: inline-flex; margin-top: -7px; margin-bottom: 17px; color: var(--muted); font-size: 10px; font-weight: 700; letter-spacing: .04em; text-decoration: none; }
+.puzzle-source:hover { color: var(--acid); }
 .fullscreen-button { display: inline-flex; align-items: center; gap: 7px; height: 31px; padding: 0 10px; border-radius: 999px; border: 1px solid var(--line); background: rgba(255,255,255,.025); color: var(--muted); cursor: pointer; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; transition: .2s ease; }
 .fullscreen-button:hover, .fullscreen-button.active { color: var(--ink); border-color: rgba(203,243,77,.42); background: rgba(203,243,77,.07); }
 .fullscreen-icon { width: 11px; height: 11px; display: block; background: linear-gradient(var(--ink),var(--ink)) 0 0/5px 1px no-repeat, linear-gradient(var(--ink),var(--ink)) 0 0/1px 5px no-repeat, linear-gradient(var(--ink),var(--ink)) 100% 0/5px 1px no-repeat, linear-gradient(var(--ink),var(--ink)) 100% 0/1px 5px no-repeat, linear-gradient(var(--ink),var(--ink)) 0 100%/5px 1px no-repeat, linear-gradient(var(--ink),var(--ink)) 0 100%/1px 5px no-repeat, linear-gradient(var(--ink),var(--ink)) 100% 100%/5px 1px no-repeat, linear-gradient(var(--ink),var(--ink)) 100% 100%/1px 5px no-repeat; }

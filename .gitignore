@@ -1,0 +1,5 @@
+tools/stockfish/
+tools/puzzle-audit/node_modules/
+tools/puzzle-audit/engine-report.json
+tools/puzzle-audit/cache/
+

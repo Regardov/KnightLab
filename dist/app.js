@@ -37,12 +37,12 @@ const THEMES = [
   { id: "rookend", group: "Эндшпиль", name: "Ладейный эндшпиль", description: "Активность ладьи и отсечение короля.", icon: "♜", color: "#66e8f5", count: 35 }
 ];
 
-const PUZZLES = [
+const LEGACY_PUZZLES = [
   {
     id: "p01", theme: "mate1", title: "Мат в один ход", difficulty: "Легко", rating: 620,
-    fen: "7k/6Q1/6K1/8/8/8/8/8 w - - 0 1", orientation: "white", solution: ["g7h7"],
-    prompt: "Ход белых. Поставьте мат одним ходом.", hint: "Ферзь должен встать рядом с королём и остаться под защитой.",
-    lesson: "Ферзь на h7 перекрывает всю восьмую горизонталь, а белый король защищает его от взятия."
+    fen: "7k/8/5K2/8/8/6Q1/8/8 w - - 0 1", orientation: "white", solution: ["g3g7"],
+    prompt: "Ход белых. Поставьте мат одним ходом.", hint: "Ферзь должен встать на седьмую горизонталь под защиту короля.",
+    lesson: "Qg7# — единственный мат в один ход: ферзь закрывает все поля отхода и защищён королём f6."
   },
   {
     id: "p02", theme: "backrank", title: "Последняя линия", difficulty: "Легко", rating: 780,
@@ -58,9 +58,9 @@ const PUZZLES = [
   },
   {
     id: "p04", theme: "skewer", title: "Король впереди", difficulty: "Средне", rating: 1080,
-    fen: "7q/6k1/8/8/8/8/1B6/6K1 w - - 0 1", orientation: "white", solution: ["b2c3"],
-    prompt: "Ход белых. Найдите линейный удар слоном.", hint: "Шах заставит короля уйти и откроет более ценную цель позади.",
-    lesson: "Bc3+ атакует короля по диагонали. После его отхода белые забирают ферзя на h8."
+    fen: "8/6kq/8/8/8/8/8/2R3K1 w - - 0 1", orientation: "white", solution: ["c1c7"],
+    prompt: "Ход белых. Найдите линейный удар ладьёй.", hint: "Шах по седьмой горизонтали заставит короля уйти и откроет ферзя позади.",
+    lesson: "Rc7+ ставит короля перед ферзём. После отхода короля ладья забирает ферзя h7."
   },
   {
     id: "p05", theme: "hanging", title: "Незащищённая ладья", difficulty: "Легко", rating: 710,
@@ -76,27 +76,27 @@ const PUZZLES = [
   },
   {
     id: "p07", theme: "double", title: "Ферзь с темпом", difficulty: "Средне", rating: 1180,
-    fen: "4k3/8/8/1q6/8/8/4Q3/4K3 w - - 0 1", orientation: "white", solution: ["e2b5"],
+    fen: "4k3/8/8/1q2p3/8/8/4Q3/4K3 w - - 0 1", orientation: "white", solution: ["e2b5"],
     prompt: "Ход белых. Создайте две угрозы одним ходом.", hint: "Шах — самый сильный темп. Совместите его с атакой на ферзя.",
     lesson: "Qxb5+ одновременно забирает ферзя и шахует короля по диагонали b5–e8. Форсирующий ход решает две задачи сразу."
   },
   {
-    id: "p08", theme: "discovered", title: "Открой линию", difficulty: "Средне", rating: 1240,
-    fen: "4k3/8/8/8/4B3/8/4R3/4K3 w - - 0 1", orientation: "white", solution: ["e4g6"],
-    prompt: "Ход белых. Сделайте вскрытый шах.", hint: "Уведите слона с вертикали e и одновременно создайте новую угрозу.",
-    lesson: "Bg6 открывает ладье линию к королю. Вскрытая атака особенно сильна, когда уходящая фигура тоже атакует цель."
+    id: "p08", theme: "discovered", title: "Два действия одним ходом", difficulty: "Средне", rating: 1240,
+    fen: "4k3/8/8/7q/8/8/4B3/4R1K1 w - - 0 1", orientation: "white", solution: ["e2h5"],
+    prompt: "Ход белых. Выиграйте ферзя и одновременно откройте шах.", hint: "Слон может забрать ферзя, освободив вертикаль для ладьи.",
+    lesson: "Bxh5+ забирает ферзя и открывает ладье e1 линию к королю. Это вскрытая атака с максимальным темпом."
   },
   {
     id: "p09", theme: "remove", title: "Уберите защитника", difficulty: "Средне", rating: 1320,
-    fen: "6k1/5ppp/8/8/2B5/8/5PPP/3Q2K1 w - - 0 1", orientation: "white", solution: ["c4f7"],
+    fen: "6k1/5ppp/8/7Q/2B5/8/8/6K1 w - - 0 1", orientation: "white", solution: ["h5f7"],
     prompt: "Ход белых. Устраните главного защитника короля.", hint: "Пешка f7 держит важные поля вокруг короля.",
-    lesson: "Bxf7+ разрушает пешечный щит с темпом. Устранение защитника часто открывает путь ферзю."
+    lesson: "Qxf7+ убирает пешку f7 с шахом. Ферзя на f7 поддерживает слон c4, поэтому король не может его забрать."
   },
   {
-    id: "p10", theme: "sacrifice", title: "Греческий подарок", difficulty: "Сложно", rating: 1540,
-    fen: "6k1/5ppp/8/6NQ/8/3B4/5PPP/6K1 w - - 0 1", orientation: "white", solution: ["d3h7", "g8h7", "h5f7"],
-    prompt: "Ход белых. Начните атаку жертвой слона.", hint: "Заманите короля на h7, затем продолжите шахом ферзя.",
-    lesson: "Bxh7+ вынуждает Kxh7, после чего Qxf7+ продолжает атаку. Жертва работает благодаря форсированным шахам и активному коню g5."
+    id: "p10", theme: "sacrifice", title: "Вторжение ладьи", difficulty: "Сложно", rating: 1540,
+    fen: "5rkr/5ppp/8/2BQ1N2/8/1B6/8/K5R1 w - - 0 1", orientation: "white", solution: ["g1g7"],
+    prompt: "Ход белых. Разрушьте пешечное прикрытие короля.", hint: "Ладья может ворваться на g7 с шахом — поле защищает конь f5.",
+    lesson: "Rxg7+! вскрывает короля и создаёт решающую атаку. Kxg7 невозможно из-за коня f5, поэтому чёрные теряют прикрытие короля."
   },
   {
     id: "p11", theme: "defense", title: "Единственная защита", difficulty: "Сложно", rating: 1610,
@@ -105,10 +105,10 @@ const PUZZLES = [
     lesson: "Rxd3 ликвидирует атакующего ферзя. В защите сначала ищите размен главной фигуры соперника."
   },
   {
-    id: "p12", theme: "counter", title: "Шах важнее угрозы", difficulty: "Средне", rating: 1290,
-    fen: "6k1/8/8/8/8/1q6/8/3Q2K1 w - - 0 1", orientation: "white", solution: ["d1d8"],
-    prompt: "Ход белых. Ответьте на угрозу контратакой.", hint: "Вместо пассивной защиты дайте шах по открытой линии.",
-    lesson: "Qd8+ перехватывает инициативу. Форсирующий шах часто даёт время решить собственные проблемы."
+    id: "p12", theme: "counter", title: "Сначала взятие", difficulty: "Средне", rating: 1290,
+    fen: "6k1/8/8/8/8/1q6/8/3Q2K1 w - - 0 1", orientation: "white", solution: ["d1b3"],
+    prompt: "Ход белых. Снимите главную угрозу активным ходом.", hint: "Проверьте, защищён ли атакующий ферзь.",
+    lesson: "Qxb3 немедленно убирает атакующего ферзя. Перед поиском сложной контратаки всегда проверяйте прямые взятия."
   },
   {
     id: "p13", theme: "promotion", title: "Новый ферзь", difficulty: "Легко", rating: 760,
@@ -117,22 +117,22 @@ const PUZZLES = [
     lesson: "a8=Q превращает проходную в ферзя. В тренажёре превращение в ферзя выбирается автоматически."
   },
   {
-    id: "p14", theme: "pawnend", title: "Возьмите оппозицию", difficulty: "Средне", rating: 1210,
-    fen: "8/8/4k3/8/4K3/8/4P3/8 w - - 0 1", orientation: "white", solution: ["e4d4"],
-    prompt: "Ход белых. Займите ключевое поле.", hint: "Встаньте напротив короля, оставив между королями одно поле по диагонали продвижения.",
-    lesson: "Kd4 улучшает положение короля и помогает провести пешку. В пешечных окончаниях активность короля решает всё."
+    id: "p14", theme: "pawnend", title: "Точный ход королём", difficulty: "Средне", rating: 1210,
+    fen: "7k/8/5KP1/8/8/8/8/8 w - - 0 1", orientation: "white", solution: ["f6e5"],
+    prompt: "Ход белых. Не выпустите победу в пешечном эндшпиле.", hint: "Прямой толчок пешки преждевременен. Сначала улучшите положение короля.",
+    lesson: "Ke5! сохраняет выигрыш и не позволяет королю заблокировать проходную. В эндшпиле даже естественный шах пешкой может оказаться неточным."
   },
   {
-    id: "p15", theme: "rookend", title: "Ладья позади пешки", difficulty: "Сложно", rating: 1680,
-    fen: "8/P7/8/8/8/6k1/8/1R4K1 w - - 0 1", orientation: "white", solution: ["b1a1"],
-    prompt: "Ход белых. Поддержите проходную с правильной стороны.", hint: "Ладья лучше всего поддерживает проходную сзади.",
-    lesson: "Ra1 ставит ладью позади проходной. Это универсальный принцип ладейных эндшпилей."
+    id: "p15", theme: "rookend", title: "Ладья и король", difficulty: "Средне", rating: 1360,
+    fen: "7k/8/6K1/8/8/8/8/5R2 w - - 0 1", orientation: "white", solution: ["f1f8"],
+    prompt: "Ход белых. Поставьте мат ладьёй.", hint: "Отрежьте короля по восьмой горизонтали — белый король уже контролирует поля отхода.",
+    lesson: "Rf8# завершает базовый мат ладьёй и королём: ладья отрезает восьмую горизонталь, а король держит g7 и h7."
   },
   {
     id: "p16", theme: "zwischenzug", title: "Промежуточный шах", difficulty: "Сложно", rating: 1730,
-    fen: "4k3/8/8/8/2q5/8/4Q3/6K1 w - - 0 1", orientation: "white", solution: ["e2h5"],
+    fen: "2r1k3/8/8/4p3/2q5/8/4Q3/6K1 w - - 0 1", orientation: "white", solution: ["e2e5"],
     prompt: "Ход белых. Не спешите отвечать на нападение.", hint: "Сначала вставьте шах, чтобы выиграть темп.",
-    lesson: "Qh5+ — промежуточный ход. Соперник обязан ответить на шах, и белые получают темп для следующего действия."
+    lesson: "Qxe5+ — промежуточный шах со взятием пешки. Соперник обязан ответить на шах, а белые сохраняют ферзя и инициативу."
   }
 ];
 
@@ -215,10 +215,16 @@ function loadPuzzle(index, scroll = false) {
   state.hintSquare = null;
   state.attemptsThisPuzzle = 0;
 
-  $("#puzzleNumber").textContent = `Задача ${state.puzzleIndex + 1} из ${PUZZLES.length}`;
+  const activeList = filteredPuzzles();
+  const activeIndex = activeList.findIndex((item) => item.id === puzzle.id);
+  $("#puzzleNumber").textContent = activeIndex >= 0
+    ? `Задача ${activeIndex + 1} из ${activeList.length}`
+    : `Задача ${state.puzzleIndex + 1} из ${PUZZLES.length}`;
   $("#difficultyBadge").textContent = puzzle.difficulty;
   $("#puzzleTitle").textContent = puzzle.title;
   $("#puzzlePrompt").textContent = puzzle.prompt;
+  $("#puzzleSource").href = puzzle.source?.url || "https://lichess.org/training";
+  $("#puzzleSource").textContent = puzzle.source?.id ? `Источник: Lichess #${puzzle.source.id}` : "Проверено Stockfish 19";
   $("#puzzleRating").textContent = puzzle.rating;
   $("#ratingFill").style.width = `${Math.min(100, Math.max(16, (puzzle.rating - 400) / 16))}%`;
   $("#hintText").textContent = puzzle.hint;
@@ -229,7 +235,32 @@ function loadPuzzle(index, scroll = false) {
   $("#opponentSide").textContent = puzzle.orientation === "white" ? "Чёрные" : "Белые";
   setStatus("ready");
   renderBoard();
+  verifyPuzzleWithEngine(puzzle);
   if (scroll) $("#trainer").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+async function verifyPuzzleWithEngine(puzzle) {
+  const badge = $("#engineBadge");
+  const label = $("#engineLabel");
+  const puzzleId = puzzle.id;
+  badge.className = "engine-badge checking";
+  label.textContent = "Stockfish анализирует";
+  if (!window.KnightLabEngine) {
+    badge.className = "engine-badge error";
+    label.textContent = "Stockfish недоступен";
+    return;
+  }
+  try {
+    const bestMove = await window.KnightLabEngine.analyze(puzzle.fen, 14);
+    if (currentPuzzle().id !== puzzleId) return;
+    const verified = bestMove === puzzle.solution[0];
+    badge.className = `engine-badge ${verified ? "ready" : "error"}`;
+    label.textContent = verified ? "Stockfish 19 · проверено" : "Линия требует проверки";
+  } catch (_) {
+    if (currentPuzzle().id !== puzzleId) return;
+    badge.className = "engine-badge error";
+    label.textContent = "Stockfish недоступен";
+  }
 }
 
 function renderBoard() {
@@ -484,7 +515,7 @@ function renderThemes() {
       <span class="theme-icon">${theme.icon}</span>
       <h3>${theme.name}</h3>
       <p>${theme.description}</p>
-      <span class="count">${theme.count} задач →</span>
+      <span class="count">${PUZZLES.filter((puzzle) => puzzle.theme === theme.id).length} задачи →</span>
     </button>`).join("");
   $("#themeGrid").querySelectorAll("button").forEach((card) => card.addEventListener("click", () => chooseTheme(card.dataset.theme)));
 }
