@@ -34,7 +34,7 @@
   <aside class="filter-drawer" id="filterDrawer" aria-hidden="true" aria-label="Задачник по темам">
     <div class="drawer-header">
       <div>
-        <span class="drawer-kicker">250 ЗАДАЧ</span>
+        <span class="drawer-kicker">750 ЗАДАЧ</span>
         <h2>Задачник по темам</h2>
       </div>
       <button class="drawer-close" id="filterClose" type="button" aria-label="Закрыть фильтры">×</button>
@@ -43,7 +43,7 @@
     <div class="drawer-overall">
       <div><span>Общий прогресс</span><strong id="overallProgressPercent">0%</strong></div>
       <div class="drawer-progress-track"><span id="overallProgressBar"></span></div>
-      <small id="overallProgressCount">0 из 250 решено</small>
+      <small id="overallProgressCount">0 из 750 решено</small>
     </div>
     <div class="drawer-section">
       <div class="drawer-section-heading"><span>Темы</span><small>решено</small></div>
@@ -68,7 +68,7 @@
       </select>
     </div>
     <div class="drawer-footer">
-      <span id="filterResultCount">250 задач доступно</span>
+      <span id="filterResultCount">750 задач доступно</span>
       <button class="drawer-reset" id="resetFilters" type="button">Сбросить</button>
     </div>
   </aside>
@@ -80,7 +80,7 @@
         <h1 id="hero-title">Видеть комбинацию<br><em>раньше соперника.</em></h1>
         <p>Тренируй тактическое зрение на коротких, понятных задачах. От мата в один ход до сложных жертв и эндшпилей.</p>
         <div class="hero-actions">
-          <a class="primary-button" href="#trainer">Начать тренировку <span>→</span></a>
+          <a class="primary-button" id="heroStartButton" href="#trainer">Начать тренировку <span>→</span></a>
           <a class="text-link" href="#themes">Выбрать тему</a>
         </div>
       </div>
@@ -101,13 +101,43 @@
           <div class="eyebrow"><span></span> Интерактивная тренировка</div>
           <h2 id="trainer-title">Твой следующий ход</h2>
         </div>
-        <button class="filter-summary-button" id="filterSummaryButton" type="button">
+        <div class="training-heading-actions">
+          <button class="change-theme-button" id="changeThemeButton" type="button" hidden>Сменить тему</button>
+          <button class="filter-summary-button" id="filterSummaryButton" type="button" hidden>
           <span class="mini-bars"><i></i><i></i><i></i></span>
           <span id="filterSummary">Все задачи</span>
-        </button>
+          </button>
+        </div>
       </div>
 
-      <div class="task-banner" id="taskBanner" aria-live="polite">
+      <section class="training-setup" id="trainingSetup" aria-labelledby="setupTitle">
+        <div class="setup-intro">
+          <div>
+            <span class="setup-step">Шаг 1 из 2</span>
+            <h3 id="setupTitle">Что тренируем сегодня?</h3>
+            <p>Выберите тему — случайная задача больше не появится без вашего решения.</p>
+          </div>
+          <div class="setup-total"><strong>30</strong><span>задач<br>в каждой теме</span></div>
+        </div>
+        <div class="setup-theme-grid" id="setupThemeGrid" role="listbox" aria-label="Выбор темы тренировки"></div>
+        <div class="setup-footer">
+          <div class="setup-difficulty">
+            <span class="setup-step">Шаг 2 из 2</span>
+            <div class="setup-difficulty-options" id="setupDifficultyOptions" aria-label="Сложность тренировки">
+              <button type="button" class="active" data-difficulty="all">Любая</button>
+              <button type="button" data-difficulty="Легко">Легко</button>
+              <button type="button" data-difficulty="Средне">Средне</button>
+              <button type="button" data-difficulty="Сложно">Сложно</button>
+            </div>
+          </div>
+          <div class="setup-launch">
+            <span id="setupSelectionText">Сначала выберите тему</span>
+            <button class="setup-start-button" id="startTrainingButton" type="button" disabled>Начать тренировку <span>→</span></button>
+          </div>
+        </div>
+      </section>
+
+      <div class="task-banner" id="taskBanner" aria-live="polite" hidden>
         <div class="task-side"><span class="task-dot"></span><span id="taskSide">Ход белых</span></div>
         <div class="task-copy">
           <span>Ваша задача</span>
@@ -115,7 +145,7 @@
         </div>
       </div>
 
-      <div class="trainer-grid">
+      <div class="trainer-grid" id="trainingWorkspace" hidden>
         <aside class="puzzle-panel" aria-live="polite">
           <div class="puzzle-kicker">
             <span id="puzzleNumber">Задача 1</span>

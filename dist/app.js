@@ -154,6 +154,9 @@ const state = {
   activeGroup: "Все",
   sound: true,
   attemptsThisPuzzle: 0,
+  trainingStarted: false,
+  setupTheme: null,
+  setupDifficulty: "all",
   filters: { theme: "all", difficulty: "all" },
   progress: loadProgress()
 };
@@ -676,6 +679,78 @@ function renderThemeFilters() {
   });
 }
 
+function renderTrainingSetup() {
+  const grid = $("#setupThemeGrid");
+  grid.innerHTML = THEMES.map((theme) => `
+    <button type="button" class="setup-theme-option" data-theme="${theme.id}" role="option" aria-selected="false" style="--setup-color:${theme.color}">
+      <span class="setup-theme-icon">${theme.icon}</span>
+      <span><strong>${theme.name}</strong><small>30 задач</small></span>
+      <i aria-hidden="true">✓</i>
+    </button>`).join("");
+  grid.querySelectorAll("button").forEach((button) => button.addEventListener("click", () => {
+    state.setupTheme = button.dataset.theme;
+    updateTrainingSetup();
+  }));
+  updateTrainingSetup();
+}
+
+function updateTrainingSetup() {
+  const selectedTheme = THEMES.find((theme) => theme.id === state.setupTheme);
+  $("#setupThemeGrid").querySelectorAll("button").forEach((button) => {
+    const active = button.dataset.theme === state.setupTheme;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-selected", String(active));
+  });
+  $("#setupDifficultyOptions").querySelectorAll("button").forEach((button) => {
+    button.classList.toggle("active", button.dataset.difficulty === state.setupDifficulty);
+  });
+  $("#startTrainingButton").disabled = !selectedTheme;
+  $("#setupSelectionText").textContent = selectedTheme
+    ? `${selectedTheme.name} · ${state.setupDifficulty === "all" ? "любая сложность" : state.setupDifficulty.toLowerCase()}`
+    : "Сначала выберите тему";
+}
+
+function startTraining(themeId = state.setupTheme, difficulty = state.setupDifficulty) {
+  if (!themeId) {
+    showToast("Сначала выберите тему тренировки");
+    return;
+  }
+  state.setupTheme = themeId === "all" ? null : themeId;
+  state.setupDifficulty = difficulty;
+  state.filters.theme = themeId;
+  state.filters.difficulty = difficulty;
+  $("#categoryFilter").value = themeId;
+  $("#difficultyFilter").value = difficulty;
+  const list = filteredPuzzles();
+  const available = list.find((puzzle) => !state.progress.solved.includes(puzzle.id)) || list[0];
+  if (!available) {
+    showToast("Для этого сочетания пока нет задач");
+    return;
+  }
+  state.trainingStarted = true;
+  $("#trainingSetup").hidden = true;
+  $("#taskBanner").hidden = false;
+  $("#trainingWorkspace").hidden = false;
+  $("#changeThemeButton").hidden = false;
+  $("#filterSummaryButton").hidden = false;
+  updateFilterUi();
+  setFilterDrawer(false);
+  loadPuzzle(PUZZLES.findIndex((puzzle) => puzzle.id === available.id), true);
+}
+
+function showTrainingSetup() {
+  state.trainingStarted = false;
+  if (state.filters.theme !== "all") state.setupTheme = state.filters.theme;
+  state.setupDifficulty = state.filters.difficulty;
+  $("#trainingSetup").hidden = false;
+  $("#taskBanner").hidden = true;
+  $("#trainingWorkspace").hidden = true;
+  $("#changeThemeButton").hidden = true;
+  $("#filterSummaryButton").hidden = true;
+  updateTrainingSetup();
+  $("#trainer").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
 function themeProgress(themeId) {
   const puzzles = themeId === "all" ? PUZZLES : PUZZLES.filter((puzzle) => puzzle.theme === themeId);
   const solved = new Set(state.progress.solved);
@@ -731,20 +806,7 @@ function renderThemes() {
 }
 
 function chooseTheme(themeId) {
-  const collection = themeId === "all" ? PUZZLES : PUZZLES.filter((p) => p.theme === themeId);
-  const available = collection.find((p) => !state.progress.solved.includes(p.id)) || collection[0];
-  if (!available) {
-    const theme = THEMES.find((t) => t.id === themeId);
-    showToast(`${theme.name}: подборка появится в следующем обновлении`);
-    return;
-  }
-  state.filters.theme = themeId;
-  state.filters.difficulty = "all";
-  $("#categoryFilter").value = themeId;
-  $("#difficultyFilter").value = "all";
-  updateFilterUi();
-  setFilterDrawer(false);
-  loadPuzzle(PUZZLES.findIndex((p) => p.id === available.id), true);
+  startTraining(themeId, "all");
 }
 
 function applyFilters() {
@@ -756,7 +818,10 @@ function applyFilters() {
     showToast("Нет задач с таким сочетанием фильтров");
     return;
   }
-  loadPuzzle(PUZZLES.findIndex((p) => p.id === list[0].id));
+  if (state.trainingStarted) {
+    const available = list.find((puzzle) => !state.progress.solved.includes(puzzle.id)) || list[0];
+    loadPuzzle(PUZZLES.findIndex((p) => p.id === available.id));
+  }
 }
 
 function updateFilterUi() {
@@ -846,11 +911,11 @@ function init() {
   const dateFormatter = new Intl.DateTimeFormat("ru-RU", { day: "numeric", month: "short" });
   $("#todayDate").textContent = dateFormatter.format(new Date()).replace(".", "");
   renderThemeFilters();
+  renderTrainingSetup();
   renderThemeProgressMenu();
   renderThemeTabs();
   renderThemes();
   updateFilterUi();
-  loadPuzzle(0);
   updateStats();
 
   $("#hintButton").addEventListener("click", showHint);
@@ -862,6 +927,13 @@ function init() {
   $("#filterToggle").addEventListener("click", () => setFilterDrawer(true));
   $("#taskbookButton").addEventListener("click", () => setFilterDrawer(true));
   $("#filterSummaryButton").addEventListener("click", () => setFilterDrawer(true));
+  $("#changeThemeButton").addEventListener("click", showTrainingSetup);
+  $("#startTrainingButton").addEventListener("click", () => startTraining());
+  $("#setupDifficultyOptions").querySelectorAll("button").forEach((button) => button.addEventListener("click", () => {
+    state.setupDifficulty = button.dataset.difficulty;
+    updateTrainingSetup();
+  }));
+  $("#heroStartButton").addEventListener("click", () => setTimeout(() => $("#setupThemeGrid button")?.focus(), 350));
   $("#filterClose").addEventListener("click", () => setFilterDrawer(false));
   $("#drawerOverlay").addEventListener("click", () => setFilterDrawer(false));
   $("#difficultyOptions").querySelectorAll("button").forEach((button) => button.addEventListener("click", () => {

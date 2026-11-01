@@ -8,6 +8,7 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, "..", "..");
 const input = path.join(here, "cache", "puzzles-partial.csv");
 const output = path.join(root, "dist", "puzzle-data.js");
+const PUZZLES_PER_THEME = 30;
 
 const themes = [
   ["mate1","mateIn1","Мат в один ход","Найдите единственный матующий ход.","Сначала проверьте все шахи."],
@@ -54,9 +55,9 @@ for await (const line of reader) {
     if (!tags.has(angle)) continue;
     const list = candidates.get(angle);
     list.push({ id, fen, moves: movesText.split(" "), rating: Number(ratingText), popularity, plays, gameUrl });
-    if (list.length > 240) {
+    if (list.length > 600) {
       list.sort((a, b) => (b.popularity - a.popularity) || (b.plays - a.plays));
-      list.length = 160;
+      list.length = 400;
     }
   }
 }
@@ -93,22 +94,22 @@ function evenlySpacedPicks(items, count) {
 }
 
 function difficultyFor(index) {
-  if (index < 3) return "Легко";
-  if (index < 7) return "Средне";
+  if (index < 10) return "Легко";
+  if (index < 20) return "Средне";
   return "Сложно";
 }
 
 const used = new Set();
 // Keep the generated set deterministic when a database line has a materially
 // different local-engine preference at the audit depth.
-const excludedPuzzleIds = new Set(["1Yfuh"]);
+const excludedPuzzleIds = new Set(["1Yfuh", "3Ogaj", "0WylI", "36PcU", "4Is9p", "0qXfy", "0Iwtn", "1hPsD", "16JKk", "3hAPT", "0slii", "4Jo8D", "2NLmT", "4Jn4n"]);
 const generated = [];
 for (const theme of themes) {
   const batch = candidates.get(theme[1])
     .filter((item) => !used.has(item.id) && !excludedPuzzleIds.has(item.id))
     .sort((a,b) => a.rating - b.rating);
-  const picks = evenlySpacedPicks(batch, 10);
-  if (picks.length < 10) throw new Error(`${theme[1]}: found only ${batch.length} matching puzzles`);
+  const picks = evenlySpacedPicks(batch, PUZZLES_PER_THEME);
+  if (picks.length < PUZZLES_PER_THEME) throw new Error(`${theme[1]}: found only ${batch.length} matching puzzles`);
   picks.forEach((item, index) => {
     used.add(item.id);
     generated.push(makePuzzle(theme, item, difficultyFor(index), index + 1));

@@ -42,6 +42,8 @@ for (const id of [
   "chessboard", "hintButton", "resetButton", "nextButton", "themeGrid",
   "filterToggle", "filterDrawer", "filterClose", "taskbookButton", "themeProgressList", "difficultyOptions",
   "overallProgressPercent", "overallProgressBar", "overallProgressCount",
+  "trainingSetup", "setupThemeGrid", "setupDifficultyOptions", "setupSelectionText", "startTrainingButton",
+  "trainingWorkspace", "changeThemeButton", "heroStartButton",
   "fullscreenButton", "fullscreenLabel", "taskBanner", "taskSide", "taskGoal",
   "fullscreenTaskSide", "fullscreenTaskGoal", "mistakeFeedback", "mistakeMoveLabel",
   "mistakeWhy", "mistakeBetter", "mistakeConsequence", "retryAfterMistake"
@@ -56,7 +58,7 @@ vm.runInContext(`${puzzleData}\n${dataOnly}\nglobalThis.__data = { THEMES, PUZZL
 const { THEMES, PUZZLES, GROUPS } = sandbox.__data;
 
 assert.ok(THEMES.length >= 24, "The theme library must be comprehensive");
-assert.equal(PUZZLES.length, 250, "Every theme must provide ten verified puzzles");
+assert.equal(PUZZLES.length, 750, "Every theme must provide thirty verified puzzles");
 assert.deepEqual([...GROUPS], ["Все", "Маты", "Материал", "Атака", "Защита", "Эндшпиль"]);
 assert.equal(new Set(THEMES.map((theme) => theme.id)).size, THEMES.length, "Theme ids must be unique");
 assert.equal(new Set(PUZZLES.map((puzzle) => puzzle.id)).size, PUZZLES.length, "Puzzle ids must be unique");
@@ -104,7 +106,7 @@ for (const puzzle of PUZZLES) {
 
 for (const theme of THEMES) {
   const themed = PUZZLES.filter((puzzle) => puzzle.theme === theme.id);
-  assert.equal(themed.length, 10, `${theme.id} must have exactly ten puzzles`);
+  assert.equal(themed.length, 30, `${theme.id} must have exactly thirty puzzles`);
   assert.deepEqual([...new Set(themed.map((puzzle) => puzzle.difficulty))].sort(), ["Легко", "Сложно", "Средне"].sort());
 }
 
