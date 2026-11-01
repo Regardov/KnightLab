@@ -178,6 +178,16 @@
             <div class="chessboard" id="chessboard" role="grid" aria-label="Шахматная доска"></div>
           </div>
 
+          <div class="mistake-feedback" id="mistakeFeedback" hidden aria-live="polite">
+            <div class="mistake-heading">
+              <span class="mistake-mark">!</span>
+              <div><small>РАЗБОР ОШИБКИ</small><strong id="mistakeMoveLabel">Неточный ход</strong></div>
+            </div>
+            <p id="mistakeWhy"></p>
+            <div class="mistake-consequence"><span>Ответ соперника</span><p id="mistakeConsequence"></p></div>
+            <button class="retry-mistake-button" id="retryAfterMistake" type="button">Вернуть позицию и попробовать снова</button>
+          </div>
+
           <div class="board-bottomline">
             <div class="player-chip">
               <div class="player-avatar you">♞</div>
@@ -242,6 +252,7 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <script src="puzzle-data.js"></script>
   <script src="engine-client.js"></script>
+  <script src="vendor/chess.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

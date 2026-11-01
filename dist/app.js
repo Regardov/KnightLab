@@ -139,11 +139,17 @@ const LEGACY_PUZZLES = [
 const $ = (selector) => document.querySelector(selector);
 const state = {
   puzzleIndex: 0,
+  chess: null,
   board: {},
   selected: null,
   dragFrom: null,
   lineIndex: 0,
   lastMove: [],
+  mistakeMove: [],
+  replyMove: [],
+  mistakeSnapshot: null,
+  mistakeToken: 0,
+  locked: false,
   hintSquare: null,
   activeGroup: "Все",
   sound: true,
@@ -208,10 +214,16 @@ function currentPuzzle() { return PUZZLES[state.puzzleIndex]; }
 function loadPuzzle(index, scroll = false) {
   state.puzzleIndex = (index + PUZZLES.length) % PUZZLES.length;
   const puzzle = currentPuzzle();
+  state.chess = new window.Chess(puzzle.fen);
   state.board = parseFen(puzzle.fen);
   state.selected = null;
   state.lineIndex = 0;
   state.lastMove = [];
+  state.mistakeMove = [];
+  state.replyMove = [];
+  state.mistakeSnapshot = null;
+  state.mistakeToken += 1;
+  state.locked = false;
   state.hintSquare = null;
   state.attemptsThisPuzzle = 0;
 
@@ -235,6 +247,7 @@ function loadPuzzle(index, scroll = false) {
   $("#lessonText").textContent = puzzle.lesson;
   $("#hintBox").hidden = true;
   $("#solutionNote").hidden = true;
+  $("#mistakeFeedback").hidden = true;
   $("#playerSide").textContent = puzzle.orientation === "white" ? "Белые" : "Чёрные";
   $("#opponentSide").textContent = puzzle.orientation === "white" ? "Чёрные" : "Белые";
   setStatus("ready");
@@ -286,34 +299,40 @@ function renderBoard() {
       square.setAttribute("aria-label", `${squareName}${piece ? `, ${pieceName(piece)}` : ""}`);
       if (state.selected === squareName) square.classList.add("selected");
       if (state.lastMove.includes(squareName)) square.classList.add("last-move");
+      if (state.mistakeMove.includes(squareName)) square.classList.add("mistake-move");
+      if (state.replyMove.includes(squareName)) square.classList.add("punishment-move");
       if (state.hintSquare === squareName) square.classList.add("hint-square");
       if (piece) {
         const span = document.createElement("span");
         span.innerHTML = PIECE_SVGS[piece.toLowerCase()];
         span.className = piece === piece.toUpperCase() ? "piece-white" : "piece-black";
-        span.draggable = true;
-        span.addEventListener("dragstart", (event) => {
-          state.dragFrom = squareName;
-          state.selected = squareName;
-          state.hintSquare = null;
-          square.classList.add("selected");
-          event.dataTransfer.effectAllowed = "move";
-          event.dataTransfer.setData("text/plain", squareName);
-        });
-        span.addEventListener("dragend", () => {
-          if (state.dragFrom) {
-            state.dragFrom = null;
-            state.selected = null;
-            renderBoard();
-          }
-        });
+        const interactive = !state.locked && isPlayersTurn() && isPlayerPiece(piece);
+        span.draggable = interactive;
+        if (!interactive) span.classList.add("piece-locked");
+        if (interactive) {
+          span.addEventListener("dragstart", (event) => {
+            state.dragFrom = squareName;
+            state.selected = squareName;
+            state.hintSquare = null;
+            square.classList.add("selected");
+            event.dataTransfer.effectAllowed = "move";
+            event.dataTransfer.setData("text/plain", squareName);
+          });
+          span.addEventListener("dragend", () => {
+            if (state.dragFrom) {
+              state.dragFrom = null;
+              state.selected = null;
+              renderBoard();
+            }
+          });
+        }
         square.appendChild(span);
       }
       if (row === 7) square.insertAdjacentHTML("beforeend", `<span class="coord file">${file}</span>`);
       if (col === 0) square.insertAdjacentHTML("beforeend", `<span class="coord rank">${rank}</span>`);
       square.addEventListener("click", () => handleSquare(squareName));
       square.addEventListener("dragover", (event) => {
-        if (!state.dragFrom || state.dragFrom === squareName) return;
+        if (state.locked || !state.dragFrom || state.dragFrom === squareName) return;
         event.preventDefault();
         event.dataTransfer.dropEffect = "move";
         square.classList.add("drop-target");
@@ -338,11 +357,33 @@ function pieceName(piece) {
   return `${piece === piece.toUpperCase() ? "белые" : "чёрные"} ${names[piece.toLowerCase()]}`;
 }
 
+function playerColor() {
+  return currentPuzzle().orientation === "white" ? "w" : "b";
+}
+
+function isPlayerPiece(piece) {
+  if (!piece) return false;
+  return (piece === piece.toUpperCase() ? "w" : "b") === playerColor();
+}
+
+function isPlayersTurn() {
+  return state.chess?.turn() === playerColor();
+}
+
 function handleSquare(square) {
+  if (state.locked) {
+    if (state.mistakeSnapshot) showToast("Сначала верните позицию после разбора ошибки");
+    return;
+  }
   if (state.lineIndex >= currentPuzzle().solution.length) return;
   if (!state.selected) {
     if (!state.board[square]) {
       setStatus("notice", "Сначала выберите фигуру", "Нажмите на свою фигуру, которой хотите пойти.");
+      return;
+    }
+    if (!isPlayerPiece(state.board[square])) {
+      setStatus("notice", "Это фигура соперника", `Вы играете за ${playerColor() === "w" ? "белых" : "чёрных"}. Двигать можно только свои фигуры.`);
+      playTone("wrong");
       return;
     }
     state.selected = square;
@@ -352,6 +393,12 @@ function handleSquare(square) {
   }
   if (state.selected === square) {
     state.selected = null;
+    renderBoard();
+    return;
+  }
+  if (isPlayerPiece(state.board[square])) {
+    state.selected = square;
+    state.hintSquare = null;
     renderBoard();
     return;
   }
@@ -367,19 +414,28 @@ function normalizeMove(from, to) {
 }
 
 function tryMove(from, to) {
+  if (state.locked || !isPlayersTurn()) return;
+  if (!isPlayerPiece(state.board[from])) {
+    setStatus("notice", "Ход запрещён", "Вы не можете двигать фигуры соперника.");
+    return;
+  }
   const puzzle = currentPuzzle();
   const expected = puzzle.solution[state.lineIndex];
   const move = normalizeMove(from, to);
+  const legalMove = findLegalMove(from, to, move[4]);
+  if (!legalMove) {
+    setStatus("notice", "Так ходить нельзя", illegalMoveReason(state.board[from]));
+    state.selected = null;
+    renderBoard();
+    playTone("wrong");
+    return;
+  }
   state.progress.attempts += 1;
   state.attemptsThisPuzzle += 1;
 
   if (move !== expected) {
     saveProgress();
-    setStatus("wrong");
-    state.lastMove = [];
-    renderBoard();
-    playTone("wrong");
-    updateStats();
+    showWrongMove(legalMove, expected);
     return;
   }
 
@@ -395,11 +451,14 @@ function tryMove(from, to) {
     return;
   }
 
+  state.locked = true;
   setStatus("thinking");
+  renderBoard();
   window.setTimeout(() => {
     const reply = puzzle.solution[state.lineIndex];
     applyMove(reply);
     state.lineIndex += 1;
+    state.locked = false;
     renderBoard();
     playTone("reply");
     if (state.lineIndex >= puzzle.solution.length) completePuzzle();
@@ -407,15 +466,116 @@ function tryMove(from, to) {
   }, 650);
 }
 
+function findLegalMove(from, to, promotion = "q") {
+  return state.chess.moves({ square: from, verbose: true }).find((candidate) =>
+    candidate.to === to && (!candidate.promotion || candidate.promotion === (promotion || "q"))
+  );
+}
+
+function illegalMoveReason(piece) {
+  const names = { k: "Король не может идти под шах.", q: "Ферзь ходит только по прямой или диагонали без препятствий.", r: "Ладья ходит по прямой без препятствий.", b: "Слон ходит по диагонали без препятствий.", n: "Конь ходит буквой «Г».", p: "Пешка идёт вперёд, а берёт только по диагонали." };
+  return names[piece?.toLowerCase()] || "Этот ход не разрешён правилами шахмат.";
+}
+
+async function showWrongMove(legalMove, expectedUci) {
+  const puzzle = currentPuzzle();
+  const token = ++state.mistakeToken;
+  const startFen = state.chess.fen();
+  const expectedChess = new window.Chess(startFen);
+  const expectedMove = expectedChess.move({ from: expectedUci.slice(0, 2), to: expectedUci.slice(2, 4), promotion: expectedUci[4] || "q" });
+
+  state.mistakeSnapshot = { fen: startFen, lineIndex: state.lineIndex };
+  state.locked = true;
+  state.lastMove = [];
+  state.mistakeMove = [legalMove.from, legalMove.to];
+  state.replyMove = [];
+  state.chess.move({ from: legalMove.from, to: legalMove.to, promotion: legalMove.promotion || "q" });
+  state.board = parseFen(state.chess.fen());
+
+  const wrongLabel = legalMove.san || `${legalMove.from}–${legalMove.to}`;
+  const expectedLabel = expectedMove?.san || expectedUci;
+  $("#mistakeMoveLabel").textContent = `${wrongLabel} — неточно`;
+  $("#mistakeWhy").textContent = explainMistake(expectedMove, expectedLabel, puzzle);
+  $("#mistakeConsequence").textContent = "Stockfish ищет самый сильный ответ соперника…";
+  $("#mistakeFeedback").hidden = false;
+  setStatus("wrong", "Ход не решает задачу", `На доске показан ${wrongLabel}. Сейчас появится лучший ответ соперника.`);
+  renderBoard();
+  playTone("wrong");
+  updateStats();
+
+  if (!window.KnightLabEngine) {
+    $("#mistakeConsequence").textContent = `Соперник получает время на защиту. Точный ход: ${expectedLabel}.`;
+    return;
+  }
+
+  try {
+    const replyUci = await window.KnightLabEngine.analyze(state.chess.fen(), 13);
+    if (token !== state.mistakeToken || !state.mistakeSnapshot || currentPuzzle().id !== puzzle.id) return;
+    const reply = replyUci && replyUci !== "(none)"
+      ? findLegalMove(replyUci.slice(0, 2), replyUci.slice(2, 4), replyUci[4])
+      : null;
+    if (!reply) {
+      $("#mistakeConsequence").textContent = state.chess.isGameOver()
+        ? "Этот ход немедленно завершает партию не тем результатом, который требовался в задаче."
+        : `Точный ход был ${expectedLabel}; выбранный ход упускает тактическую возможность.`;
+      return;
+    }
+    state.chess.move({ from: reply.from, to: reply.to, promotion: reply.promotion || "q" });
+    state.board = parseFen(state.chess.fen());
+    state.replyMove = [reply.from, reply.to];
+    $("#mistakeConsequence").textContent = explainReply(reply, expectedLabel);
+    renderBoard();
+    playTone("reply");
+  } catch (_) {
+    if (token !== state.mistakeToken) return;
+    $("#mistakeConsequence").textContent = `Точный ход был ${expectedLabel}. Ваш ход отдаёт сопернику темп и позволяет защититься.`;
+  }
+}
+
+function explainMistake(expectedMove, expectedLabel, puzzle) {
+  if (!expectedMove) return `Ход не выполняет цель задачи: ${puzzle.prompt}`;
+  if (expectedMove.san.includes("#")) return `Вы упустили немедленный мат. ${expectedLabel} завершал партию сразу.`;
+  if (expectedMove.san.includes("+")) return `Точный ход ${expectedLabel} давал шах и заставлял соперника отвечать. Выбранный ход теряет форсирующий темп.`;
+  if (expectedMove.captured) return `Нужно было сразу сыграть ${expectedLabel} и использовать уязвимость фигуры. После вашего хода соперник получает шанс спастись.`;
+  return `Ход не создаёт требуемую угрозу. Точный ход ${expectedLabel} реализует идею задачи: ${puzzle.prompt}`;
+}
+
+function explainReply(reply, expectedLabel) {
+  const captured = reply.captured ? ` и забирает ${pieceWord(reply.captured)}` : "";
+  const finish = reply.san.includes("#") ? " Это мат." : reply.san.includes("+") ? " Ответ дан с шахом." : " Соперник перехватывает инициативу.";
+  return `Последствие: Stockfish отвечает ${reply.san}${captured}.${finish} В исходной позиции сильнее было ${expectedLabel}.`;
+}
+
+function pieceWord(piece) {
+  return ({ p: "пешку", n: "коня", b: "слона", r: "ладью", q: "ферзя", k: "короля" })[piece] || "фигуру";
+}
+
+function retryAfterMistake() {
+  if (!state.mistakeSnapshot) return;
+  state.mistakeToken += 1;
+  state.chess = new window.Chess(state.mistakeSnapshot.fen);
+  state.board = parseFen(state.mistakeSnapshot.fen);
+  state.lineIndex = state.mistakeSnapshot.lineIndex;
+  state.mistakeSnapshot = null;
+  state.mistakeMove = [];
+  state.replyMove = [];
+  state.lastMove = [];
+  state.locked = false;
+  $("#mistakeFeedback").hidden = true;
+  setStatus("ready", "Попробуйте ещё раз", "Позиция восстановлена. Ищите самый форсирующий ход.");
+  renderBoard();
+}
+
 function applyMove(uci) {
   const from = uci.slice(0,2);
   const to = uci.slice(2,4);
-  let piece = state.board[from];
-  if (!piece) return;
-  if (uci[4]) piece = piece === piece.toUpperCase() ? uci[4].toUpperCase() : uci[4];
-  delete state.board[from];
-  state.board[to] = piece;
+  const move = state.chess.move({ from, to, promotion: uci[4] || "q" });
+  if (!move) return null;
+  state.board = parseFen(state.chess.fen());
   state.lastMove = [from, to];
+  state.mistakeMove = [];
+  state.replyMove = [];
+  return move;
 }
 
 function completePuzzle() {
@@ -427,6 +587,7 @@ function completePuzzle() {
     updateStreak();
   }
   saveProgress();
+  state.locked = true;
   setStatus("correct");
   $("#solutionNote").hidden = false;
   $("#turnPill").innerHTML = "<i></i> Решено";
@@ -449,9 +610,9 @@ function setStatus(type, customTitle, customText) {
   const card = $("#statusCard");
   card.className = "status-card";
   const presets = {
-    ready: ["✦", "Ваш ход", "Нажмите на фигуру, затем на поле назначения."],
+    ready: ["✦", customTitle || "Ваш ход", customText || "Нажмите на фигуру, затем на поле назначения."],
     notice: ["○", customTitle, customText],
-    wrong: ["×", "Попробуйте ещё", "Ход выглядит логично, но есть более сильное продолжение."],
+    wrong: ["×", customTitle || "Попробуйте ещё", customText || "Ход выглядит логично, но есть более сильное продолжение."],
     thinking: ["…", "Ответ соперника", "Секунду — позиция обновляется."],
     correct: ["✓", "Точно!", "Комбинация найдена. Разберите идею и идите дальше."]
   };
@@ -460,10 +621,14 @@ function setStatus(type, customTitle, customText) {
   $("#statusIcon").textContent = values[0];
   $("#statusTitle").textContent = values[1];
   $("#statusText").textContent = values[2];
-  $("#turnPill").innerHTML = type === "thinking" ? "<i></i> Ответ" : "<i></i> Ваш ход";
+  $("#turnPill").innerHTML = type === "thinking" ? "<i></i> Ответ" : type === "wrong" ? "<i></i> Разбор" : "<i></i> Ваш ход";
 }
 
 function showHint() {
+  if (state.locked) {
+    showToast(state.mistakeSnapshot ? "Сначала верните позицию" : "Дождитесь ответа соперника");
+    return;
+  }
   const puzzle = currentPuzzle();
   $("#hintBox").hidden = false;
   const expected = puzzle.solution[state.lineIndex] || puzzle.solution[0];
@@ -646,6 +811,7 @@ function init() {
   $("#hintButton").addEventListener("click", showHint);
   $("#resetButton").addEventListener("click", () => loadPuzzle(state.puzzleIndex));
   $("#nextButton").addEventListener("click", nextPuzzle);
+  $("#retryAfterMistake").addEventListener("click", retryAfterMistake);
   $("#categoryFilter").addEventListener("change", applyFilters);
   $("#difficultyFilter").addEventListener("change", applyFilters);
   $("#filterToggle").addEventListener("click", () => setFilterDrawer(true));
