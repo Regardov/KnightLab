@@ -1,10 +1,10 @@
 const PIECE_SVGS = {
-  k: `<svg class="piece-svg" viewBox="0 0 100 100" aria-hidden="true"><path class="piece-line" d="M50 7v22M40 17h20"/><path class="piece-body" d="M50 27c-7-10-19-7-19 3 0 6 4 10 9 13-10 4-16 13-16 24h52c0-11-6-20-16-24 5-3 9-7 9-13 0-10-12-13-19-3Z"/><path class="piece-body" d="M29 68h42l-5 11H34l-5-11Zm-4 15h50v10H25V83Z"/><path class="piece-detail" d="M35 75h30M31 88h38"/></svg>`,
-  q: `<svg class="piece-svg" viewBox="0 0 100 100" aria-hidden="true"><circle class="piece-body" cx="17" cy="24" r="5"/><circle class="piece-body" cx="38" cy="17" r="5"/><circle class="piece-body" cx="62" cy="17" r="5"/><circle class="piece-body" cx="83" cy="24" r="5"/><path class="piece-body" d="m18 29 15 27 8-30 9 28 9-28 8 30 15-27-10 39H28L18 29Z"/><path class="piece-body" d="M28 68h44l-5 11H33l-5-11Zm-3 15h50v10H25V83Z"/><path class="piece-detail" d="M34 73h32M31 88h38"/></svg>`,
-  r: `<svg class="piece-svg" viewBox="0 0 100 100" aria-hidden="true"><path class="piece-body" d="M21 14h16v11h12V14h14v11h16V14h8v29H13V14h8Zm4 29h50l-5 34H30l-5-34Zm2 34h46l5 15H22l5-15Z"/><path class="piece-detail" d="M22 35h56M31 70h38M28 84h44"/></svg>`,
-  b: `<svg class="piece-svg" viewBox="0 0 100 100" aria-hidden="true"><path class="piece-body" d="M50 9c13 11 21 22 21 34 0 12-8 21-18 26l6 9h14l5 14H22l5-14h14l6-9c-10-5-18-14-18-26 0-12 8-23 21-34Z"/><path class="piece-detail" d="m57 27-17 23M34 58c10 5 22 5 32 0M31 84h38"/></svg>`,
-  n: `<svg class="piece-svg" viewBox="0 0 100 100" aria-hidden="true"><path class="piece-body" d="M23 77c3-16 11-29 25-39l-12-5 10-10 9 7c5-9 13-15 24-18l-4 17c8 10 11 23 7 37L65 55 54 67h16l7 25H21l2-15Z"/><path class="piece-detail" d="M52 34c8 1 14 5 19 11M29 82h40"/><circle class="piece-eye" cx="62" cy="34" r="3.5"/></svg>`,
-  p: `<svg class="piece-svg" viewBox="0 0 100 100" aria-hidden="true"><circle class="piece-body" cx="50" cy="25" r="15"/><path class="piece-body" d="M39 39h22c0 13 6 22 12 30H27c6-8 12-17 12-30Zm-10 30h42l6 23H23l6-23Z"/><path class="piece-detail" d="M31 76h38M29 86h42"/></svg>`
+  k: `<svg class="piece-svg" viewBox="0 0 100 100" aria-hidden="true"><path class="piece-line" d="M50 5v22M39 15h22"/><path class="piece-body" d="M50 25c-12-9-25-3-23 9 1 7 7 12 14 15-11 7-16 17-14 29h46c2-12-3-22-14-29 7-3 13-8 14-15 2-12-11-18-23-9Z"/><path class="piece-highlight" d="M35 35c1 6 6 10 12 12M37 58c-4 5-6 10-6 16"/><path class="piece-body" d="M26 73h48l-5 10H31l-5-10Zm-5 12h58l3 9H18l3-9Z"/><path class="piece-detail" d="M31 78h38M25 88h50"/></svg>`,
+  q: `<svg class="piece-svg" viewBox="0 0 100 100" aria-hidden="true"><circle class="piece-body" cx="17" cy="22" r="5"/><circle class="piece-body" cx="38" cy="14" r="5"/><circle class="piece-body" cx="62" cy="14" r="5"/><circle class="piece-body" cx="83" cy="22" r="5"/><path class="piece-body" d="M18 28 31 61l9-36 10 32 10-32 9 36 13-33-8 43H26l-8-43Z"/><path class="piece-highlight" d="M27 34 34 60M45 31l5 22"/><path class="piece-body" d="M27 68h46l-5 13H32l-5-13Zm-5 16h56l3 10H19l3-10Z"/><path class="piece-detail" d="M31 73h38M26 88h48"/></svg>`,
+  r: `<svg class="piece-svg" viewBox="0 0 100 100" aria-hidden="true"><path class="piece-body" d="M15 12h17v12h11V12h14v12h11V12h17v31H15V12Z"/><path class="piece-detail" d="M20 35h60"/><path class="piece-body" d="M22 42h56l-7 37H29l-7-37Z"/><path class="piece-highlight" d="M31 49 35 72"/><path class="piece-body" d="M27 77h46l6 17H21l6-17Z"/><path class="piece-detail" d="M29 82h42M25 89h50"/></svg>`,
+  b: `<svg class="piece-svg" viewBox="0 0 100 100" aria-hidden="true"><path class="piece-body" d="M50 7c16 12 24 25 23 38-1 11-8 20-18 25l5 9h13l6 15H21l6-15h13l5-9c-10-5-17-14-18-25C26 32 34 19 50 7Z"/><path class="piece-detail" d="m59 25-20 28M34 59c10 7 22 7 32 0"/><path class="piece-highlight" d="M42 22c-7 8-10 16-9 24M33 83h34"/><path class="piece-detail" d="M27 88h46"/></svg>`,
+  n: `<svg class="piece-svg" viewBox="0 0 100 100" aria-hidden="true"><path class="piece-body" d="M20 78c3-18 12-33 29-44l-15-4 13-13 10 9c6-9 15-14 28-17l-7 18c8 11 10 24 6 39L66 51 53 66h17l8 28H18l2-16Z"/><path class="piece-detail" d="M50 31c12 1 20 7 26 16M27 81h42M24 88h48"/><path class="piece-highlight" d="M30 68c4-11 12-20 25-28"/><circle class="piece-eye" cx="65" cy="31" r="3.6"/><path class="piece-line" d="m76 47 7 4"/></svg>`,
+  p: `<svg class="piece-svg" viewBox="0 0 100 100" aria-hidden="true"><circle class="piece-body" cx="50" cy="23" r="16"/><path class="piece-body" d="M39 38h22c0 14 5 24 13 34H26c8-10 13-20 13-34Z"/><path class="piece-highlight" d="M42 15c-5 3-7 8-7 13M35 47c-1 8-3 13-7 20"/><path class="piece-body" d="M27 69h46l7 25H20l7-25Z"/><path class="piece-detail" d="M30 76h40M25 88h50"/></svg>`
 };
 
 const GROUPS = ["Все", "Маты", "Материал", "Атака", "Защита", "Эндшпиль"];
@@ -239,8 +239,6 @@ function loadPuzzle(index, scroll = false) {
   $("#taskGoal").textContent = puzzle.prompt;
   $("#fullscreenTaskSide").textContent = `Ход ${puzzle.orientation === "white" ? "белых" : "чёрных"}`;
   $("#fullscreenTaskGoal").textContent = puzzle.prompt;
-  $("#puzzleSource").href = puzzle.source?.url || "https://lichess.org/training";
-  $("#puzzleSource").textContent = puzzle.source?.id ? `Источник: Lichess #${puzzle.source.id}` : "Проверено Stockfish 19";
   $("#puzzleRating").textContent = puzzle.rating;
   $("#ratingFill").style.width = `${Math.min(100, Math.max(16, (puzzle.rating - 400) / 16))}%`;
   $("#hintText").textContent = puzzle.hint;
@@ -684,7 +682,7 @@ function renderThemes() {
       <span class="theme-icon">${theme.icon}</span>
       <h3>${theme.name}</h3>
       <p>${theme.description}</p>
-      <span class="count">${PUZZLES.filter((puzzle) => puzzle.theme === theme.id).length} задачи →</span>
+      <span class="count">${PUZZLES.filter((puzzle) => puzzle.theme === theme.id).length} задач →</span>
     </button>`).join("");
   $("#themeGrid").querySelectorAll("button").forEach((card) => card.addEventListener("click", () => chooseTheme(card.dataset.theme)));
 }

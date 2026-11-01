@@ -74,19 +74,44 @@ function makePuzzle(theme, item, difficulty, sequence) {
     id: `li-${item.id}-${themeId}`, theme: themeId, title: `${title} · ${sequence}`, difficulty,
     rating: item.rating, fen, orientation: fen.split(" ")[1] === "w" ? "white" : "black", solution,
     prompt, hint, lesson: `Проверенная линия: ${san.join(" ")}.`,
-    source: { provider: "Lichess", id: item.id, url: `https://lichess.org/training/${item.id}` }, plays: item.plays
+    plays: item.plays
   };
 }
 
+function evenlySpacedPicks(items, count) {
+  if (items.length < count) return [];
+  const picks = [];
+  const pickedIndexes = new Set();
+  for (let index = 0; index < count; index += 1) {
+    let candidateIndex = Math.round(index * (items.length - 1) / (count - 1));
+    while (pickedIndexes.has(candidateIndex) && candidateIndex < items.length - 1) candidateIndex += 1;
+    while (pickedIndexes.has(candidateIndex) && candidateIndex > 0) candidateIndex -= 1;
+    pickedIndexes.add(candidateIndex);
+    picks.push(items[candidateIndex]);
+  }
+  return picks;
+}
+
+function difficultyFor(index) {
+  if (index < 3) return "Легко";
+  if (index < 7) return "Средне";
+  return "Сложно";
+}
+
 const used = new Set();
+// Keep the generated set deterministic when a database line has a materially
+// different local-engine preference at the audit depth.
+const excludedPuzzleIds = new Set(["1Yfuh"]);
 const generated = [];
 for (const theme of themes) {
-  const batch = candidates.get(theme[1]).filter((item) => !used.has(item.id)).sort((a,b) => a.rating - b.rating);
-  if (batch.length < 3) throw new Error(`${theme[1]}: found only ${batch.length} matching puzzles`);
-  const picks = [batch[0], batch[Math.floor((batch.length - 1) / 2)], batch.at(-1)];
-  ["Легко","Средне","Сложно"].forEach((difficulty, index) => {
-    used.add(picks[index].id);
-    generated.push(makePuzzle(theme, picks[index], difficulty, index + 1));
+  const batch = candidates.get(theme[1])
+    .filter((item) => !used.has(item.id) && !excludedPuzzleIds.has(item.id))
+    .sort((a,b) => a.rating - b.rating);
+  const picks = evenlySpacedPicks(batch, 10);
+  if (picks.length < 10) throw new Error(`${theme[1]}: found only ${batch.length} matching puzzles`);
+  picks.forEach((item, index) => {
+    used.add(item.id);
+    generated.push(makePuzzle(theme, item, difficultyFor(index), index + 1));
   });
   console.log(`${theme[0]}: ${picks.map((item) => item.id).join(", ")}`);
 }

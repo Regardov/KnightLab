@@ -30,6 +30,8 @@ assert.match(js, /showWrongMove/);
 assert.match(css, /\.task-banner/);
 assert.match(html, /engine-client\.js/);
 assert.match(html, /vendor\/chess\.js/);
+assert.doesNotMatch(html, /Источник:|id="puzzleSource"/);
+assert.doesNotMatch(js, /puzzleSource/);
 assert.ok(fs.statSync(path.join(root, "dist", "engine", "stockfish-19-lite-single.wasm")).size > 1_000_000);
 assert.ok(fs.statSync(path.join(root, "dist", "vendor", "chess.js")).size > 100_000);
 
@@ -51,7 +53,7 @@ vm.runInContext(`${puzzleData}\n${dataOnly}\nglobalThis.__data = { THEMES, PUZZL
 const { THEMES, PUZZLES, GROUPS } = sandbox.__data;
 
 assert.ok(THEMES.length >= 24, "The theme library must be comprehensive");
-assert.equal(PUZZLES.length, 75, "Every theme must provide three verified puzzles");
+assert.equal(PUZZLES.length, 250, "Every theme must provide ten verified puzzles");
 assert.deepEqual([...GROUPS], ["Все", "Маты", "Материал", "Атака", "Защита", "Эндшпиль"]);
 assert.equal(new Set(THEMES.map((theme) => theme.id)).size, THEMES.length, "Theme ids must be unique");
 assert.equal(new Set(PUZZLES.map((puzzle) => puzzle.id)).size, PUZZLES.length, "Puzzle ids must be unique");
@@ -99,7 +101,7 @@ for (const puzzle of PUZZLES) {
 
 for (const theme of THEMES) {
   const themed = PUZZLES.filter((puzzle) => puzzle.theme === theme.id);
-  assert.equal(themed.length, 3, `${theme.id} must have exactly three puzzles`);
+  assert.equal(themed.length, 10, `${theme.id} must have exactly ten puzzles`);
   assert.deepEqual([...new Set(themed.map((puzzle) => puzzle.difficulty))].sort(), ["Легко", "Сложно", "Средне"].sort());
 }
 
