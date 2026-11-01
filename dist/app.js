@@ -160,7 +160,9 @@ const state = {
 
 function loadProgress() {
   try {
-    return JSON.parse(localStorage.getItem("knightlab-progress")) || defaultProgress();
+    const saved = JSON.parse(localStorage.getItem("knightlab-progress"));
+    if (!saved) return defaultProgress();
+    return { ...defaultProgress(), ...saved, solved: Array.isArray(saved.solved) ? saved.solved : [] };
   } catch (_) {
     return defaultProgress();
   }
@@ -492,8 +494,9 @@ async function showWrongMove(legalMove, expectedUci) {
 
   const wrongLabel = legalMove.san || `${legalMove.from}–${legalMove.to}`;
   const expectedLabel = expectedMove?.san || expectedUci;
-  $("#mistakeMoveLabel").textContent = `${wrongLabel} — неточно`;
-  $("#mistakeWhy").textContent = explainMistake(expectedMove, expectedLabel, puzzle);
+  $("#mistakeMoveLabel").textContent = `Ваш ход: ${wrongLabel}`;
+  $("#mistakeWhy").textContent = explainMistake(legalMove, expectedMove, puzzle);
+  $("#mistakeBetter").textContent = explainBetterMove(expectedMove, expectedLabel, puzzle);
   $("#mistakeConsequence").textContent = "Stockfish ищет самый сильный ответ соперника…";
   $("#mistakeFeedback").hidden = false;
   setStatus("wrong", "Ход не решает задачу", `На доске показан ${wrongLabel}. Сейчас появится лучший ответ соперника.`);
@@ -530,12 +533,26 @@ async function showWrongMove(legalMove, expectedUci) {
   }
 }
 
-function explainMistake(expectedMove, expectedLabel, puzzle) {
-  if (!expectedMove) return `Ход не выполняет цель задачи: ${puzzle.prompt}`;
-  if (expectedMove.san.includes("#")) return `Вы упустили немедленный мат. ${expectedLabel} завершал партию сразу.`;
-  if (expectedMove.san.includes("+")) return `Точный ход ${expectedLabel} давал шах и заставлял соперника отвечать. Выбранный ход теряет форсирующий темп.`;
-  if (expectedMove.captured) return `Нужно было сразу сыграть ${expectedLabel} и использовать уязвимость фигуры. После вашего хода соперник получает шанс спастись.`;
-  return `Ход не создаёт требуемую угрозу. Точный ход ${expectedLabel} реализует идею задачи: ${puzzle.prompt}`;
+function explainMistake(playedMove, expectedMove, puzzle) {
+  const played = playedMove.san || `${playedMove.from}–${playedMove.to}`;
+  const action = playedMove.captured
+    ? `${played} забирает ${pieceWord(playedMove.captured)}, но это не решает главную проблему позиции.`
+    : playedMove.san.includes("+")
+      ? `${played} даёт шах, но соперник может ответить без решающих потерь.`
+      : `${played} не создаёт достаточно сильной угрозы и отдаёт сопернику темп.`;
+  if (!expectedMove) return `${action} Цель задачи остаётся невыполненной: ${puzzle.prompt}`;
+  if (expectedMove.san.includes("#")) return `${action} При этом на доске был немедленный мат.`;
+  if (expectedMove.san.includes("+")) return `${action} Вы упустили форсирующий шах, который ограничивал ответы соперника.`;
+  if (expectedMove.captured) return `${action} В позиции была тактическая возможность сразу выиграть материал.`;
+  return `${action} Тактическая идея задачи остаётся нереализованной.`;
+}
+
+function explainBetterMove(expectedMove, expectedLabel, puzzle) {
+  if (!expectedMove) return `Нужно было искать ход, который напрямую выполняет цель: ${puzzle.prompt}`;
+  if (expectedMove.san.includes("#")) return `${expectedLabel} — мат. Этот ход сразу завершает комбинацию.`;
+  if (expectedMove.san.includes("+")) return `${expectedLabel} — шах с темпом. Соперник обязан отвечать, поэтому комбинация продолжается форсированно.`;
+  if (expectedMove.captured) return `${expectedLabel} сразу забирает ${pieceWord(expectedMove.captured)} и не даёт сопернику спасти материал.`;
+  return `${expectedLabel} создаёт нужную угрозу и выполняет задачу: ${puzzle.prompt}`;
 }
 
 function explainReply(reply, expectedLabel) {
@@ -591,6 +608,8 @@ function completePuzzle() {
   $("#turnPill").innerHTML = "<i></i> Решено";
   playTone("success");
   showToast(firstToday ? "+1 к дневной цели · Отличное решение!" : "Решение повторено без ошибок");
+  renderThemeProgressMenu();
+  renderThemes();
   updateStats();
 }
 
@@ -655,14 +674,35 @@ function renderThemeFilters() {
     option.textContent = theme.name;
     select.appendChild(option);
   });
-  $("#quickThemes").innerHTML = [
-    '<button type="button" class="quick-theme active" data-theme="all">Все</button>',
-    ...playableThemes.map((theme) => `<button type="button" class="quick-theme" data-theme="${theme.id}">${theme.name}</button>`)
-  ].join("");
-  $("#quickThemes").querySelectorAll("button").forEach((button) => button.addEventListener("click", () => {
-    $("#categoryFilter").value = button.dataset.theme;
-    applyFilters();
-  }));
+}
+
+function themeProgress(themeId) {
+  const puzzles = themeId === "all" ? PUZZLES : PUZZLES.filter((puzzle) => puzzle.theme === themeId);
+  const solved = new Set(state.progress.solved);
+  const solvedCount = puzzles.filter((puzzle) => solved.has(puzzle.id)).length;
+  return { total: puzzles.length, solved: solvedCount, percent: puzzles.length ? Math.round(solvedCount / puzzles.length * 1000) / 10 : 0 };
+}
+
+function formatPercent(value) {
+  return `${Number.isInteger(value) ? value.toFixed(0) : value.toFixed(1)}%`;
+}
+
+function renderThemeProgressMenu() {
+  const overall = themeProgress("all");
+  $("#overallProgressPercent").textContent = formatPercent(overall.percent);
+  $("#overallProgressBar").style.width = `${overall.percent}%`;
+  $("#overallProgressCount").textContent = `${overall.solved} из ${overall.total} решено`;
+  const items = [{ id: "all", name: "Все темы", icon: "♞", color: "#cbf34d" }, ...THEMES];
+  $("#themeProgressList").innerHTML = items.map((theme) => {
+    const progress = themeProgress(theme.id);
+    const active = state.filters.theme === theme.id;
+    return `<button type="button" class="theme-progress-item ${active ? "active" : ""}" data-theme="${theme.id}" style="--theme-color:${theme.color}">
+      <span class="theme-progress-icon">${theme.icon}</span>
+      <span class="theme-progress-copy"><strong>${theme.name}</strong><span class="theme-progress-track"><i style="width:${progress.percent}%"></i></span></span>
+      <span class="theme-progress-value"><strong>${formatPercent(progress.percent)}</strong><small>${progress.solved}/${progress.total}</small></span>
+    </button>`;
+  }).join("");
+  $("#themeProgressList").querySelectorAll("button").forEach((button) => button.addEventListener("click", () => chooseTheme(button.dataset.theme)));
 }
 
 function renderThemeTabs() {
@@ -677,25 +717,31 @@ function renderThemeTabs() {
 
 function renderThemes() {
   const themes = state.activeGroup === "Все" ? THEMES : THEMES.filter((theme) => theme.group === state.activeGroup);
-  $("#themeGrid").innerHTML = themes.map((theme) => `
-    <button class="theme-card" data-theme="${theme.id}" data-symbol="${theme.icon}" style="--card-color:${theme.color}">
+  $("#themeGrid").innerHTML = themes.map((theme) => {
+    const progress = themeProgress(theme.id);
+    return `<button class="theme-card" data-theme="${theme.id}" data-symbol="${theme.icon}" style="--card-color:${theme.color}">
       <span class="theme-icon">${theme.icon}</span>
       <h3>${theme.name}</h3>
       <p>${theme.description}</p>
-      <span class="count">${PUZZLES.filter((puzzle) => puzzle.theme === theme.id).length} задач →</span>
-    </button>`).join("");
+      <span class="theme-card-progress"><i style="width:${progress.percent}%"></i></span>
+      <span class="count">${formatPercent(progress.percent)} · ${progress.solved} из ${progress.total} →</span>
+    </button>`;
+  }).join("");
   $("#themeGrid").querySelectorAll("button").forEach((card) => card.addEventListener("click", () => chooseTheme(card.dataset.theme)));
 }
 
 function chooseTheme(themeId) {
-  const available = PUZZLES.find((p) => p.theme === themeId);
+  const collection = themeId === "all" ? PUZZLES : PUZZLES.filter((p) => p.theme === themeId);
+  const available = collection.find((p) => !state.progress.solved.includes(p.id)) || collection[0];
   if (!available) {
     const theme = THEMES.find((t) => t.id === themeId);
     showToast(`${theme.name}: подборка появится в следующем обновлении`);
     return;
   }
   state.filters.theme = themeId;
+  state.filters.difficulty = "all";
   $("#categoryFilter").value = themeId;
+  $("#difficultyFilter").value = "all";
   updateFilterUi();
   setFilterDrawer(false);
   loadPuzzle(PUZZLES.findIndex((p) => p.id === available.id), true);
@@ -720,7 +766,7 @@ function updateFilterUi() {
   if (state.filters.difficulty !== "all") summaryParts.push(state.filters.difficulty);
   $("#filterSummary").textContent = summaryParts.join(" · ");
   $("#filterResultCount").textContent = `${list.length} ${plural(list.length, "задача доступна", "задачи доступны", "задач доступно")}`;
-  $("#quickThemes").querySelectorAll("button").forEach((button) => button.classList.toggle("active", button.dataset.theme === state.filters.theme));
+  $("#themeProgressList").querySelectorAll("button").forEach((button) => button.classList.toggle("active", button.dataset.theme === state.filters.theme));
   $("#difficultyOptions").querySelectorAll("button").forEach((button) => button.classList.toggle("active", button.dataset.difficulty === state.filters.difficulty));
 }
 
@@ -800,6 +846,7 @@ function init() {
   const dateFormatter = new Intl.DateTimeFormat("ru-RU", { day: "numeric", month: "short" });
   $("#todayDate").textContent = dateFormatter.format(new Date()).replace(".", "");
   renderThemeFilters();
+  renderThemeProgressMenu();
   renderThemeTabs();
   renderThemes();
   updateFilterUi();
@@ -813,6 +860,7 @@ function init() {
   $("#categoryFilter").addEventListener("change", applyFilters);
   $("#difficultyFilter").addEventListener("change", applyFilters);
   $("#filterToggle").addEventListener("click", () => setFilterDrawer(true));
+  $("#taskbookButton").addEventListener("click", () => setFilterDrawer(true));
   $("#filterSummaryButton").addEventListener("click", () => setFilterDrawer(true));
   $("#filterClose").addEventListener("click", () => setFilterDrawer(false));
   $("#drawerOverlay").addEventListener("click", () => setFilterDrawer(false));
@@ -839,6 +887,8 @@ function init() {
   $("#clearProgress").addEventListener("click", () => {
     state.progress = defaultProgress();
     saveProgress();
+    renderThemeProgressMenu();
+    renderThemes();
     updateStats();
     showToast("Прогресс сброшен");
   });

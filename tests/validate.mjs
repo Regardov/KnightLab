@@ -27,6 +27,8 @@ assert.match(js, /span\.draggable = interactive/);
 assert.match(js, /piece-body/);
 assert.match(js, /isPlayerPiece/);
 assert.match(js, /showWrongMove/);
+assert.match(js, /renderThemeProgressMenu/);
+assert.match(js, /explainBetterMove/);
 assert.match(css, /\.task-banner/);
 assert.match(html, /engine-client\.js/);
 assert.match(html, /vendor\/chess\.js/);
@@ -38,10 +40,11 @@ assert.ok(fs.statSync(path.join(root, "dist", "vendor", "chess.js")).size > 100_
 for (const id of [
   "trainer", "themes", "progress", "categoryFilter", "difficultyFilter",
   "chessboard", "hintButton", "resetButton", "nextButton", "themeGrid",
-  "filterToggle", "filterDrawer", "filterClose", "quickThemes", "difficultyOptions",
+  "filterToggle", "filterDrawer", "filterClose", "taskbookButton", "themeProgressList", "difficultyOptions",
+  "overallProgressPercent", "overallProgressBar", "overallProgressCount",
   "fullscreenButton", "fullscreenLabel", "taskBanner", "taskSide", "taskGoal",
   "fullscreenTaskSide", "fullscreenTaskGoal", "mistakeFeedback", "mistakeMoveLabel",
-  "mistakeWhy", "mistakeConsequence", "retryAfterMistake"
+  "mistakeWhy", "mistakeBetter", "mistakeConsequence", "retryAfterMistake"
 ]) {
   assert.ok(html.includes(`id="${id}"`), `Missing UI element #${id}`);
 }

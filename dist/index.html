@@ -13,7 +13,7 @@
   <div class="ambient ambient-two" aria-hidden="true"></div>
 
   <header class="topbar">
-    <button class="menu-button" id="filterToggle" type="button" aria-label="Открыть фильтры задач" aria-controls="filterDrawer" aria-expanded="false">
+    <button class="menu-button" id="filterToggle" type="button" aria-label="Открыть задачник" aria-controls="filterDrawer" aria-expanded="false">
       <span></span><span></span><span></span>
     </button>
     <a class="brand" href="#top" aria-label="KnightLab — на главную">
@@ -22,7 +22,7 @@
     </a>
     <nav class="main-nav" aria-label="Основная навигация">
       <a class="active" href="#trainer">Тренировка</a>
-      <a href="#themes">Темы</a>
+      <button class="nav-drawer-button" id="taskbookButton" type="button">Задачник</button>
       <a href="#progress">Прогресс</a>
     </nav>
     <button class="icon-button" id="soundButton" type="button" aria-label="Выключить звук" title="Звук">
@@ -31,23 +31,26 @@
   </header>
 
   <div class="drawer-overlay" id="drawerOverlay" hidden></div>
-  <aside class="filter-drawer" id="filterDrawer" aria-hidden="true" aria-label="Фильтры задач">
+  <aside class="filter-drawer" id="filterDrawer" aria-hidden="true" aria-label="Задачник по темам">
     <div class="drawer-header">
       <div>
-        <span class="drawer-kicker">ТРЕНИРОВКА</span>
-        <h2>Фильтры задач</h2>
+        <span class="drawer-kicker">250 ЗАДАЧ</span>
+        <h2>Задачник по темам</h2>
       </div>
       <button class="drawer-close" id="filterClose" type="button" aria-label="Закрыть фильтры">×</button>
     </div>
-    <p class="drawer-copy">Выберите тему и сложность. Доска сразу откроет подходящую задачу.</p>
+    <p class="drawer-copy">Выберите тему, следите за прогрессом и продолжайте с первой нерешённой задачи.</p>
+    <div class="drawer-overall">
+      <div><span>Общий прогресс</span><strong id="overallProgressPercent">0%</strong></div>
+      <div class="drawer-progress-track"><span id="overallProgressBar"></span></div>
+      <small id="overallProgressCount">0 из 250 решено</small>
+    </div>
     <div class="drawer-section">
-      <label for="categoryFilter">Тема</label>
-      <div class="select-wrap drawer-select">
-        <select id="categoryFilter">
-          <option value="all">Все темы</option>
-        </select>
-      </div>
-      <div class="quick-themes" id="quickThemes" aria-label="Быстрый выбор темы"></div>
+      <div class="drawer-section-heading"><span>Темы</span><small>решено</small></div>
+      <select id="categoryFilter" class="sr-only" aria-label="Тема задач">
+        <option value="all">Все темы</option>
+      </select>
+      <div class="theme-progress-list" id="themeProgressList" aria-label="Прогресс по темам"></div>
     </div>
     <div class="drawer-section">
       <label for="difficultyFilter">Сложность</label>
@@ -181,8 +184,11 @@
               <span class="mistake-mark">!</span>
               <div><small>РАЗБОР ОШИБКИ</small><strong id="mistakeMoveLabel">Неточный ход</strong></div>
             </div>
-            <p id="mistakeWhy"></p>
-            <div class="mistake-consequence"><span>Ответ соперника</span><p id="mistakeConsequence"></p></div>
+            <div class="mistake-analysis">
+              <div><span>Почему ход плох</span><p id="mistakeWhy"></p></div>
+              <div class="mistake-better"><span>Что нужно было сделать</span><p id="mistakeBetter"></p></div>
+              <div class="mistake-consequence"><span>Ответ соперника</span><p id="mistakeConsequence"></p></div>
+            </div>
             <button class="retry-mistake-button" id="retryAfterMistake" type="button">Вернуть позицию и попробовать снова</button>
           </div>
 
